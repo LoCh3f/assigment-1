@@ -1,62 +1,148 @@
-PCD a.y. 2024-2025 - ISI LM UNIBO - Cesena Campus
+# Assignment #01 — Poool Game
+**PCD a.y. 2024-2025 — ISI LM UNIBO — Cesena Campus**
 
-# Assignment #01 -  Poool Game
+---
 
-v1.0.0-20260320
+## High-Level Architecture: MVC + Active Components
 
-The assignment is about designing and developing a game called `Poool`.
+The architecture follows a layered **MVC** pattern where concurrency lives in dedicated active components, combining the physics loop approach (sketch01) and the MVC async input approach (sketch02).
 
-### Game Description
-
-The game consists in a bidimensional board with a number of small balls and two bigger balls, representing a human player ball and a bot (i.e. computer controlled) ball.
-
-<img src="board.png">
-
-The number of small balls can be high (thousands). All balls can move and bounce,  against the border or each other. We consider elastic collisions and friction force, so that a moving ball stops after a while.  At the top of the board, in the corners, there are two circles representing holes. The objective of the game for the players (human and bot) is to kick the small balls in the holes, by throwing their own balls in a sequence of throws.
-
-Details:
-- When a player puts a small ball in a hole, his/her score is incremented by one
-- If a small ball kicks another small balls in a hole, scores are not changed
-- The game ends when there are no more balls in the board and the winner is the player with the biggest score
-- The game ends also if/when the ball of a player goes in a hole. In that case, the winner is the other player, in spite of the score.
-- To kick her/his ball, the human player can press keys - UP, DOWN, LEFT, RIGHT - to instantaneously update the velocity (simulating an impulse)
-    - for instance, by pressing UP the velocity vector can be updated by adding the vector (0,1)
-- Players (human and bot) play asynchronously
-- The score of the human and bot player is displayed somewhere: in the picture: in blue, on the left (human) and on the right (bot)
-
-### The Assignment
-
-Design and develop a concurrent version of `Poool`, in two different versions:
-1)  One based on Java **multithreaded programming**, using only default/platform threads;
-2)  A variant applying **Task-based** approach, using Java **Executor Framework**, where useful.
+```
+┌─────────────────────────────────────────────┐
+│                  GameView (Swing/AWT)        │  ← Passive renderer
+└─────────────────────┬───────────────────────┘
+│ reads (snapshot)
+┌─────────────────────▼───────────────────────┐
+│              GameModel (Monitor)             │  ← Shared mutable state
+│  - List<Ball> balls                          │
+│  - int humanScore, botScore                  │
+│  - GameStatus status                         │
+│  + synchronized getters/setters              │
+└───┬───────────────┬───────────────┬──────────┘
+│               │               │
+┌───▼────┐  ┌───────▼──────┐  ┌────▼──────────┐
+│Physics │  │  BotAgent    │  │ InputController│
+│Engine  │  │  Thread      │  │ (Keyboard)     │
+│Thread  │  │  (async)     │  │ (Swing EDT)    │
+└────────┘  └──────────────┘  └───────────────┘
+```
 
 
-The concurrent programs should be designed according the principles studied during the course, promoting modularity, encapsulation as well as performance, reactivity. Further remarks:
-- For active components/thread interaction, monitors must be used, with your own implementation (no lib support)
-- The behaviour of the bot is not meant to be smart, could be any
-- For every other aspect not specified, students are free to choose the best approach for them.
+---
 
-Beside the source code, the assignment should contain a brief report, including:
-- A brief analsysis of the problem, focusing in particular those aspects that are relevant from a concurrent point of view
-- A brief description of the adopted design, the architecture (structure) and the behaviour
-    - for the behaviour, one or multiple Petri Nets can be used, choosing the proper level of abstraction
-- Performance tests to check and discuss:
-    - how much the concurrent version is better than a sequential one
-    - how much the program is effective in exploiting available cores
-- Verification of the program (or some parts of it), using model-checking and JPF in particular
+## Core Entities (Model Layer)
 
-The `assignment-01`folder in the repo includes two sketches that could be used as a starting point
-- [`sketch01`](./sketch-01.md) is an example of main loop using a sequential approach to implement the dynamics of the bouncing balls, as requested in the game
-- [`sketch02`](./sketch-02.md) is an example of a GUI program with asynchronous input from the keyboard, architected using MVC
+- **`Ball`**: position `(x,y)`, velocity `(vx,vy)`, radius, type (`SMALL`, `HUMAN`, `BOT`); methods `move(dt)`, `applyFriction(dt)`, `checkBorderBounce()`
+- **`GameModel`** (the monitor): holds `List<Ball>`, scores, `GameStatus` enum (`PLAYING`, `HUMAN_WINS`, `BOT_WINS`), hole positions. All mutating methods are `synchronized` — this is the custom monitor the assignment requires.
+- **`PhysicsEngine`**: stateless utility class — elastic collision math, hole detection, friction decay. No threading inside, called by the loop thread.
+
+---
+
+## Version 1 — Multithreaded Architecture
+
+Four platform threads, all interacting through `GameModel` as a monitor:
+
+| Thread | Responsibility | Rate |
+|---|---|---|
+| `GameLoopThread` | Steps physics, checks holes/win condition, triggers repaint | ~60 fps |
+| `BotThread` | Decides bot impulse direction & timing, updates bot ball velocity | Asynchronous |
+| Swing EDT | Handles `KeyListener` impulses, updates human ball velocity | Event-driven |
+| Swing Repaint Thread | Calls `view.repaint()` with a state snapshot | On demand |
+
+The `GameLoopThread` is the core loop — it calls `physicsEngine.step(model, dt)` which internally:
+1. Moves all balls by `dt`
+2. Applies friction
+3. Checks ball-ball collisions
+4. Checks hole detection
+
+**Synchronization**: `GameModel` uses `wait()`/`notifyAll()` for the game-over condition (bot/human threads wait, loop thread notifies when status changes). This is the custom monitor implementation.
+
+---
+
+## Version 2 — Executor Framework
+
+Replace the single `GameLoopThread` loop body with parallel sub-tasks using `ExecutorService`:
+```
+ScheduledExecutorService scheduler  ← ticks at fixed rate
+│
+▼
+PhysicsStepTask (Callable)
+│
+├── partition balls into N batches (N = # cores)
+│         └── submit N MoveTask(batch) → List<Future>
+│              [parallel: move + friction per ball]
+│
+├── join all futures (get())
+│
+└── CollisionDetectionTask (single-threaded phase)
+└── resolve collisions, holes, scores
+```
 
 
+Key design choice: **movement/friction is parallelizable** (no shared writes between balls), but **collision detection/resolution is a sequential critical section** to avoid data races. This maps cleanly onto a fork-join pattern.
 
-### The deliverable
+---
 
-The deliverable must be a zipped folder `Assignment-01`, to be submitted on the course web site, including:
-- `src` directory with sources
-- `doc` directory with the report in PDF (`report.pdf`). 
+## Concurrency Analysis
+
+The main concurrent aspects to address in the report:
+
+- **Shared mutable state**: `GameModel` is accessed by 3+ threads simultaneously — needs the monitor
+- **Asynchronous input**: keyboard events arrive on the Swing EDT, independent of the physics tick rate
+- **Bot asynchrony**: bot throws happen on its own schedule, completely independent of the human player
+- **Physics parallelism**: with thousands of balls, splitting movement computation across cores gives real speedup (benchmark this as the "sequential vs. concurrent" test)
+- **Data race on ball list**: if the view reads while the loop writes, you get rendering glitches — solve with a **snapshot copy** of the ball list for rendering, taken inside a `synchronized` block
+
+---
+
+## Suggested Package Structure
+```
+it.unibo.poool/
+├── model/
+│   ├── Ball.java
+│   ├── GameModel.java        ← the monitor
+│   └── GameStatus.java
+├── physics/
+│   └── PhysicsEngine.java
+├── view/
+│   └── GameView.java
+├── controller/
+│   ├── InputController.java
+│   └── GameController.java
+├── concurrent/
+│   ├── v1/
+│   │   ├── GameLoopThread.java
+│   │   └── BotThread.java
+│   └── v2/
+│       ├── GameLoopTask.java
+│       └── MoveTask.java
+└── Main.java
+```
 
 
+---
 
+## Petri Net Sketch (for Report)
 
+For the report, model each ball with two places: **`Moving`** and **`Still`**.
+
+- Transitions: `kick` (Still → Moving), `friction_stop` (Moving → Still), `hole_entry` (Moving → consumed)
+- The game-level net has a **`Playing`** place that transitions to **`GameOver`** when the ball-count place empties or when a player ball enters a hole
+
+---
+
+## Implementation Tips
+
+- Use `CopyOnWriteArrayList` or a synchronized snapshot for the view to read without blocking the physics loop
+- The bot "AI" can simply be a thread sleeping for a random interval then applying a random `(dx, dy)` impulse to its ball — the assignment does not require smart behavior
+- For JPF verification, focus on the monitor invariants of `GameModel` (no two threads updating scores simultaneously) — that's a realistic and manageable scope for model checking
+- For performance tests, compare sequential step time vs. parallel step time as the number of balls scales from 100 to 10,000
+
+---
+
+## Quick Tips
+- Use CopyOnWriteArrayList or a synchronized snapshot for the view to read without blocking the physics loop
+
+- The bot "AI" can simply be a thread sleeping for a random interval then applying a random (dx, dy) impulse to its ball — the assignment says it doesn't need to be smart
+
+- For JPF verification, focus on the monitor invariants of GameModel (no two threads updating scores simultaneously) — that's a realistic scope for model checking
