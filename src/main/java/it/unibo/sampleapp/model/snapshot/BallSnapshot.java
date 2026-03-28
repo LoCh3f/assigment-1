@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.model.game.snapshot;
+package it.unibo.sampleapp.model.snapshot;
 
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.util.Vector2D;

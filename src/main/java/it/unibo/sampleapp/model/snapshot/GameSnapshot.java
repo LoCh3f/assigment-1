@@ -1,6 +1,6 @@
-package it.unibo.sampleapp.model.game.snapshot;
+package it.unibo.sampleapp.model.snapshot;
 
-import it.unibo.sampleapp.model.game.GameStatus;
+import it.unibo.sampleapp.model.status.GameStatus;
 import it.unibo.sampleapp.model.hole.Hole;
 
 import java.util.Collections;

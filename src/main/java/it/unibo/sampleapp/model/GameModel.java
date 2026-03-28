@@ -1,6 +1,7 @@
-package it.unibo.sampleapp.model.game;
+package it.unibo.sampleapp.model;
 
-import it.unibo.sampleapp.model.game.snapshot.GameSnapshot;
+import it.unibo.sampleapp.model.status.GameStatus;
+import it.unibo.sampleapp.model.snapshot.GameSnapshot;
 import it.unibo.sampleapp.util.Vector2D;
 
 /**
