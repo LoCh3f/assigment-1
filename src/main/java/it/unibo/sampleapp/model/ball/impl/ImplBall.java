@@ -28,31 +28,49 @@ public final class ImplBall implements Ball {
         this.type = type;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void move(final double dt) {
         this.position = position.add(velocity.scale(dt));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Vector2D getPosition() {
         return this.position;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Vector2D getVelocity() {
         return this.velocity;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void applyFriction(final double friction, final double dt) {
         this.velocity = velocity.scale(Math.max(0, 1 - friction * dt));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public double getRadius() {
         return radius;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Type getType() {
         return type;

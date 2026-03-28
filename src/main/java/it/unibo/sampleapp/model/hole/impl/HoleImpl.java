@@ -21,11 +21,17 @@ public final class HoleImpl implements Hole {
         this.radius = radius;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Vector2D getPosition2D() {
         return this.position;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public double getRadius() {
         return this.radius;
