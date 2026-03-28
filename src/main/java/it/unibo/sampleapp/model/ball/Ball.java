@@ -6,10 +6,25 @@ import it.unibo.sampleapp.util.Vector2D;
  * Model representation for the ball.
  */
 public interface Ball {
+
     /**
      * Enum representing the type of ball.
      */
     enum Type { SMALL, HUMAN, BOT }
+
+    /**
+     * Sets the velocity of the ball.
+     *
+     * @param velocity the new velocity
+     */
+    void setVelocity(Vector2D velocity);
+
+    /**
+     * Sets the position of the ball.
+     *
+     * @param position the new position
+     */
+    void setPosition(Vector2D position);
 
     /**
      * Applies friction to the ball's velocity.

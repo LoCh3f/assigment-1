@@ -52,6 +52,16 @@ public final class ImplBall implements Ball {
         return this.velocity;
     }
 
+    @Override
+    public void setVelocity(final Vector2D velocity) {
+        this.velocity = velocity;
+    }
+
+    @Override
+    public void setPosition(final Vector2D position) {
+        this.position = position;
+    }
+
     /**
      * {@inheritDoc}
      */

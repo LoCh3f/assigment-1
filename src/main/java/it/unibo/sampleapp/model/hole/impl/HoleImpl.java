@@ -36,4 +36,9 @@ public final class HoleImpl implements Hole {
     public double getRadius() {
         return this.radius;
     }
+
+    @Override
+    public Vector2D getPosition() {
+        return this.position;
+    }
 }

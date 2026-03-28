@@ -87,4 +87,15 @@ public final class Vector2D {
     public double dot(final Vector2D other) {
         return this.x * other.x + this.y * other.y;
     }
+
+    /**
+     * Subtracts another vector from this vector.
+     *
+     * @param other the vector to subtract
+     *
+     * @return the difference of this vector and the other
+     */
+    public Vector2D subtract(final Vector2D other) {
+        return new Vector2D(x - other.x, y - other.y);
+    }
 }
