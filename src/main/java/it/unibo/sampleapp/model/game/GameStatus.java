@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.model;
+package it.unibo.sampleapp.model.game;
 
 /**
  * State representation of the game.

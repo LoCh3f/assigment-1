@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.model;
+package it.unibo.sampleapp.model.entities;
 
 /**
  * Hole representation.
