@@ -1,0 +1,56 @@
+package it.unibo.sampleapp.model.game.snapshot;
+
+import it.unibo.sampleapp.model.game.GameStatus;
+import it.unibo.sampleapp.model.hole.Hole;
+
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Immutable snapshot of the game state.
+ *
+ * @param balls active in this specific snapshot.
+ * @param humanScore score of the player.
+ * @param botScore score of the bot.
+ * @param status of the game (Win, Lose, Playing)
+ * @param holes active.
+ * @param width of the board.
+ * @param height of the board.
+ */
+public record GameSnapshot(
+        List<BallSnapshot> balls,    // all active balls
+        int humanScore,
+        int botScore,
+        GameStatus status,
+        List<Hole> holes,            // static, but view needs them
+        int width,
+        int height
+) {
+    /**
+     * Compact constructor that creates defensive copies of mutable lists.
+     */
+    public GameSnapshot {
+        balls = List.copyOf(balls);
+        holes = List.copyOf(holes);
+    }
+
+    /**
+     * Returns an unmodifiable view of the balls list.
+     *
+     * @return unmodifiable list of balls
+     */
+    @Override
+    public List<BallSnapshot> balls() {
+        return Collections.unmodifiableList(balls);
+    }
+
+    /**
+     * Returns an unmodifiable view of the holes list.
+     *
+     * @return unmodifiable list of holes
+     */
+    @Override
+    public List<Hole> holes() {
+        return Collections.unmodifiableList(holes);
+    }
+}
