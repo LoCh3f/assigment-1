@@ -119,6 +119,14 @@ it.unibo.poool/
 └── Main.java
 ```
 
+## Key Rule for the Model Layer
+The dependency arrow must always point inward:
+```
+view → controller → model ← physics
+                        ↑
+                    concurrent
+```
+This guarantees that the model can always be tested headlessly, which also makes JPF verification significantly easier since you can run the model checker on pure model code without Swing on the classpath.
 
 ---
 
