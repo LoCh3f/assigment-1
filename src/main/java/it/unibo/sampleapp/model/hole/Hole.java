@@ -21,10 +21,4 @@ public interface Hole {
      */
     double getRadius();
 
-    /**
-     * Gets the position of the hole.
-     *
-     * @return the position vector
-     */
-    Vector2D getPosition();
 }

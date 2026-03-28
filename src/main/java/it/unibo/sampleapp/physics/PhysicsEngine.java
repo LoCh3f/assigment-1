@@ -251,7 +251,7 @@ public class PhysicsEngine {
         final List<Ball> pocketed = new ArrayList<>();
         for (final Hole hole : holes) {
             for (final Ball ball : balls) {
-                final double dist = ball.getPosition().subtract(hole.getPosition()).magnitude();
+                final double dist = ball.getPosition().subtract(hole.getPosition2D()).magnitude();
                 // Ball is pocketed when its center reaches the hole center
                 if (dist < hole.getRadius()) {
                     pocketed.add(ball);

@@ -118,6 +118,7 @@ it.unibo.poool/
 │       └── MoveTask.java
 └── Main.java
 ```
+___
 
 ## Key Rule for the Model Layer
 The dependency arrow must always point inward:
@@ -129,6 +130,27 @@ view → controller → model ← physics
 This guarantees that the model can always be tested headlessly, which also makes JPF verification significantly easier since you can run the model checker on pure model code without Swing on the classpath.
 
 ---
+## Life Cycle of Each Frame
+```
+GameLoopThread                    Swing EDT (view)
+│                                │
+│  synchronized {                │
+│    physicsEngine.step(...)     │
+│    checkHoles(...)             │
+│    updateScores(...)           │
+│  }                             │
+│                                │
+│  synchronized {                │
+│    snapshot = getSnapshot()  ──┼──► GameSnapshot (immutable)
+│  }  ← lock released            │         │
+│                                │    view.render(snapshot)
+│  view.repaint()  ─────────────►│         │ paints freely,
+│                                │         │ no lock held
+```
+The lock is held for two very short windows: the physics step, and the snapshot copy. The view never competes with the physics loop during painting.
+​
+
+___
 
 ## Petri Net Sketch (for Report)
 
