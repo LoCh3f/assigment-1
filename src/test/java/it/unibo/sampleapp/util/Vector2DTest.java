@@ -14,23 +14,23 @@ class Vector2DTest {
 
     @Test
     void testXY() {
-        assertEquals(EXPECTED_X, vector2D.getX(), EPSILON);
-        assertEquals(EXPECTED_Y, vector2D.getY(), EPSILON);
+        assertEquals(EXPECTED_X, vector2D.x(), EPSILON);
+        assertEquals(EXPECTED_Y, vector2D.y(), EPSILON);
     }
 
     @Test
     void add() {
         final Vector2D other = new Vector2D(3, 4);
         final Vector2D result = vector2D.add(other);
-        assertEquals(EXPECTED_SUM_X, result.getX(), EPSILON);
-        assertEquals(EXPECTED_SUM_Y, result.getY(), EPSILON);
+        assertEquals(EXPECTED_SUM_X, result.x(), EPSILON);
+        assertEquals(EXPECTED_SUM_Y, result.y(), EPSILON);
     }
 
     @Test
     void scale() {
         final Vector2D result = vector2D.scale(2.0);
-        assertEquals(2.0, result.getX(), EPSILON);
-        assertEquals(4.0, result.getY(), EPSILON);
+        assertEquals(2.0, result.x(), EPSILON);
+        assertEquals(4.0, result.y(), EPSILON);
     }
 
     @Test
@@ -43,14 +43,14 @@ class Vector2DTest {
     void normalize() {
         final Vector2D result = vector2D.normalize();
         final double mag = vector2D.magnitude();
-        assertEquals(1.0 / mag, result.getX(), EPSILON);
-        assertEquals(2.0 / mag, result.getY(), EPSILON);
+        assertEquals(1.0 / mag, result.x(), EPSILON);
+        assertEquals(2.0 / mag, result.y(), EPSILON);
 
         // Test zero vector
         final Vector2D zero = new Vector2D(0, 0);
         final Vector2D zeroNormalized = zero.normalize();
-        assertEquals(0.0, zeroNormalized.getX(), EPSILON);
-        assertEquals(0.0, zeroNormalized.getY(), EPSILON);
+        assertEquals(0.0, zeroNormalized.x(), EPSILON);
+        assertEquals(0.0, zeroNormalized.y(), EPSILON);
     }
 
     @Test

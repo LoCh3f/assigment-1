@@ -117,10 +117,10 @@ public class PhysicsEngine {
             final Vector2D vel = b.getVelocity();
             final double r = b.getRadius();
 
-            double newVx = vel.getX();
-            double newVy = vel.getY();
-            double newPx = pos.getX();
-            double newPy = pos.getY();
+            double newVx = vel.x();
+            double newVy = vel.y();
+            double newPx = pos.x();
+            double newPy = pos.y();
 
             // Left / Right walls
             if (newPx - r < 0) {

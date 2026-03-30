@@ -2,20 +2,18 @@ package it.unibo.sampleapp.util;
 
 /**
  * A 2D vector utility class.
+ *
+ * @param x component
+ * @param y component
  */
-public final class Vector2D {
-    private final double x;
-    private final double y;
-
+public record Vector2D(double x, double y) {
     /**
      * Constructs a new Vector2D with the given x and y components.
      *
      * @param x the x component
      * @param y the y component
      */
-    public Vector2D(final double x, final double y) {
-        this.x = x;
-        this.y = y;
+    public Vector2D {
     }
 
     /**
@@ -23,7 +21,8 @@ public final class Vector2D {
      *
      * @return the x value
      */
-    public double getX() {
+    @Override
+    public double x() {
         return x;
     }
 
@@ -32,7 +31,8 @@ public final class Vector2D {
      *
      * @return the y value
      */
-    public double getY() {
+    @Override
+    public double y() {
         return y;
     }
 
@@ -40,7 +40,6 @@ public final class Vector2D {
      * Adds another vector to this one.
      *
      * @param other another 2D vector
-     *
      * @return the sum of this vector and the other
      */
     public Vector2D add(final Vector2D other) {
@@ -51,7 +50,6 @@ public final class Vector2D {
      * Scales this vector by a factor.
      *
      * @param factor the scaling factor
-     *
      * @return the scaled vector
      */
     public Vector2D scale(final double factor) {
@@ -81,7 +79,6 @@ public final class Vector2D {
      * Computes the dot product with another vector.
      *
      * @param other another vector 2D
-     *
      * @return the dot product
      */
     public double dot(final Vector2D other) {
@@ -92,7 +89,6 @@ public final class Vector2D {
      * Subtracts another vector from this vector.
      *
      * @param other the vector to subtract
-     *
      * @return the difference of this vector and the other
      */
     public Vector2D subtract(final Vector2D other) {

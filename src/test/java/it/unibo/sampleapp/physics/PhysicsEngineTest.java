@@ -52,8 +52,8 @@ class PhysicsEngineTest {
         balls.add(a);
         balls.add(b);
 
-        final double initialVelA = a.getVelocity().getX();
-        final double initialVelB = b.getVelocity().getX();
+        final double initialVelA = a.getVelocity().x();
+        final double initialVelB = b.getVelocity().x();
 
         // Run multiple steps to let the balls collide
         for (int i = 0; i < COLLISION_STEPS; i++) {
@@ -61,11 +61,11 @@ class PhysicsEngineTest {
         }
 
         // After collision with friction, velocities should have changed significantly
-        assertTrue(Math.abs(a.getVelocity().getX()) < Math.abs(initialVelA)
-                   || a.getVelocity().getX() * initialVelA < 0,
+        assertTrue(Math.abs(a.getVelocity().x()) < Math.abs(initialVelA)
+                   || a.getVelocity().x() * initialVelA < 0,
                    "A velocity should change due to collision and friction");
-        assertTrue(Math.abs(b.getVelocity().getX()) < Math.abs(initialVelB)
-                   || b.getVelocity().getX() * initialVelB < 0,
+        assertTrue(Math.abs(b.getVelocity().x()) < Math.abs(initialVelB)
+                   || b.getVelocity().x() * initialVelB < 0,
                    "B velocity should change due to collision and friction");
     }
 
@@ -79,7 +79,7 @@ class PhysicsEngineTest {
         final List<Ball> balls = new ArrayList<>();
         balls.add(b);
         engine.step(balls, BOARD_WIDTH, BOARD_HEIGHT, new ArrayList<>(), DT);
-        assertTrue(b.getVelocity().getX() > 0, "Should bounce off left wall");
+        assertTrue(b.getVelocity().x() > 0, "Should bounce off left wall");
     }
 
     /**

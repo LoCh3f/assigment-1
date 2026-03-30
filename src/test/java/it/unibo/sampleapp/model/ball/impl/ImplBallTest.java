@@ -27,8 +27,8 @@ class ImplBallTest {
         final double dt = 0.5;
         final Vector2D expectedPosition = POSITION.add(VELOCITY.scale(dt));
         ball.move(dt);
-        assertEquals(expectedPosition.getX(), ball.getPosition().getX(), EPSILON);
-        assertEquals(expectedPosition.getY(), ball.getPosition().getY(), EPSILON);
+        assertEquals(expectedPosition.x(), ball.getPosition().x(), EPSILON);
+        assertEquals(expectedPosition.y(), ball.getPosition().y(), EPSILON);
     }
 
     @Test
@@ -37,7 +37,7 @@ class ImplBallTest {
         final double dt = 0.5;
         final Vector2D expectedVelocity = VELOCITY.scale(Math.max(0, 1 - friction * dt));
         ball.applyFriction(friction, dt);
-        assertEquals(expectedVelocity.getX(), ball.getVelocity().getX(), EPSILON);
-        assertEquals(expectedVelocity.getY(), ball.getVelocity().getY(), EPSILON);
+        assertEquals(expectedVelocity.x(), ball.getVelocity().x(), EPSILON);
+        assertEquals(expectedVelocity.y(), ball.getVelocity().y(), EPSILON);
     }
 }
