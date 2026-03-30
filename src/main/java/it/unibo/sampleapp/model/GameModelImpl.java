@@ -1,6 +1,5 @@
-package it.unibo.sampleapp.model.game;
+package it.unibo.sampleapp.model;
 
-import it.unibo.sampleapp.model.GameModel;
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.ball.impl.ImplBall;
 import it.unibo.sampleapp.model.hole.Hole;

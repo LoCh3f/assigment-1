@@ -1,6 +1,7 @@
 package it.unibo.sampleapp.view;
 
-import it.unibo.sampleapp.controller.Controller;
+import it.unibo.sampleapp.model.snapshot.GameSnapshot;
+import it.unibo.sampleapp.model.status.GameStatus;
 
 /**
  * View interface.
@@ -12,12 +13,18 @@ public interface View {
     void show();
 
     /**
-     * @param controller for the MVC pattern
+     * Updates the view with a new game snapshot.
+     *
+     * @param snapshot the current game snapshot to display
      */
-    void setController(Controller controller);
+    void update(GameSnapshot snapshot);
 
     /**
-     * @return controller of the MVC associated to this view.
+     * Displays a game over message.
+     *
+     * @param result the game result status
      */
-    Controller getController();
+    void displayGameOver(GameStatus result);
 }
+
+
