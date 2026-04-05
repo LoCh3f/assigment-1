@@ -9,7 +9,6 @@ import it.unibo.sampleapp.util.Vector2D;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -20,6 +19,7 @@ import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.Serial;
 
 /**
  * The View layer — purely passive.
@@ -30,12 +30,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  */
 public final class ViewImpl extends JFrame implements View {
 
+    @Serial
     private static final long serialVersionUID = 1L;
-
-    // -----------------------------------------------------------------------
-    // Visual constants
-    // -----------------------------------------------------------------------
-
     private static final Color COLOR_BOARD = new Color(34, 85, 34);
     private static final Color COLOR_SMALL_BALL = new Color(220, 220, 220);
     private static final Color COLOR_HUMAN_BALL = new Color(70, 130, 230);
@@ -44,7 +40,6 @@ public final class ViewImpl extends JFrame implements View {
     private static final Color COLOR_SCORE_HUD = new Color(255, 255, 255, 200);
     private static final Color COLOR_OVERLAY = new Color(0, 0, 0, 160);
     private static final Color COLOR_SUBTEXT = new Color(200, 200, 200);
-
     private static final double IMPULSE_MAGNITUDE = 1.0;
     private static final String FONT_NAME = "Monospaced";
     private static final int FONT_SIZE_HUD = 18;
@@ -54,18 +49,10 @@ public final class ViewImpl extends JFrame implements View {
     private static final int CORNER_RADIUS = 8;
     private static final int MESSAGE_OFFSET = 36;
 
-    // -----------------------------------------------------------------------
-    // Fields
-    // -----------------------------------------------------------------------
-
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     private final transient Controller observer;
     private final BoardPanel boardPanel;
     private transient volatile GameSnapshot currentSnapshot;
-
-    // -----------------------------------------------------------------------
-    // Constructor
-    // -----------------------------------------------------------------------
 
     /**
      * Constructs a new ViewImpl with the given board dimensions and observer.
@@ -91,10 +78,6 @@ public final class ViewImpl extends JFrame implements View {
         setupKeyBindings();
     }
 
-    // -----------------------------------------------------------------------
-    // ViewInterface — called by Controller / GameLoopThread
-    // -----------------------------------------------------------------------
-
     /**
      * Receives a new snapshot from the game loop thread.
      * Stores it and requests a repaint on the EDT.
@@ -119,22 +102,6 @@ public final class ViewImpl extends JFrame implements View {
         boardPanel.repaint();
     }
 
-    // -----------------------------------------------------------------------
-    // Show
-    // -----------------------------------------------------------------------
-
-    /**
-     * Shows the view on the screen using SwingUtilities.invokeLater.
-     */
-    @Override
-    public void show() {
-         super.show();
-    }
-
-    // -----------------------------------------------------------------------
-    // Keyboard input → ViewObserver
-    // -----------------------------------------------------------------------
-
     private void setupKeyBindings() {
         addKeyListener(new KeyAdapter() {
             @Override
@@ -155,10 +122,6 @@ public final class ViewImpl extends JFrame implements View {
         requestFocusInWindow();
     }
 
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
     private String formatResult(final GameStatus status) {
         return switch (status) {
             case HUMAN_WINS -> "You Win!";
@@ -174,6 +137,7 @@ public final class ViewImpl extends JFrame implements View {
 
     private class BoardPanel extends JPanel {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         private final int boardWidth;
