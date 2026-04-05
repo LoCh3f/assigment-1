@@ -128,7 +128,7 @@ public final class ViewImpl extends JFrame implements View {
      */
     @Override
     public void show() {
-        SwingUtilities.invokeLater(() -> setVisible(true));
+         super.show();
     }
 
     // -----------------------------------------------------------------------
