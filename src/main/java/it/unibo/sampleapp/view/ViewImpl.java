@@ -50,7 +50,7 @@ public final class ViewImpl extends JFrame implements View {
     private static final int MESSAGE_OFFSET = 36;
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
-    private final transient Controller observer;
+    private final transient Controller controller;
     private final BoardPanel boardPanel;
     private transient volatile GameSnapshot currentSnapshot;
 
@@ -64,7 +64,7 @@ public final class ViewImpl extends JFrame implements View {
     public ViewImpl(final int boardWidth, final int boardHeight,
                     final Controller observer) {
         super("Pool");
-        this.observer = observer;
+        this.controller = observer;
         this.boardPanel = new BoardPanel(boardWidth, boardHeight);
         boardPanel.setPreferredSize(new Dimension(boardWidth, boardHeight));
         boardPanel.setBackground(COLOR_BOARD);
@@ -114,7 +114,7 @@ public final class ViewImpl extends JFrame implements View {
                     default -> null;
                 };
                 if (impulse != null) {
-                    observer.onDirectionInput(impulse);
+                    controller.onDirectionInput(impulse);
                 }
             }
         });
@@ -131,9 +131,6 @@ public final class ViewImpl extends JFrame implements View {
         };
     }
 
-    // -----------------------------------------------------------------------
-    // Inner panel — all painting lives here
-    // -----------------------------------------------------------------------
 
     private class BoardPanel extends JPanel {
 
@@ -175,7 +172,6 @@ public final class ViewImpl extends JFrame implements View {
             }
         }
 
-        // ── Rendering helpers ─────────────────────────────────────────────
 
         private void drawHoles(final Graphics2D g2, final GameSnapshot snap) {
             g2.setColor(COLOR_HOLE);
@@ -229,6 +225,27 @@ public final class ViewImpl extends JFrame implements View {
             g2.setColor(COLOR_BOT_BALL);
             g2.drawString(botLabel, boardWidth - botW - 8 + PADDING_HUD / 2,
                     boardHeight - 8 - PADDING_HUD / 2 + 2);
+
+            String fpsLabel = "FPS: " + controller.getCurrentFps();
+            int textWidth   = fm.stringWidth(fpsLabel);
+            int textHeight  = fm.getHeight();
+            int padding     = 12;
+
+            int boxWidth  = textWidth  + padding;
+            int boxHeight = textHeight + padding;
+
+            int x = (boardWidth  - boxWidth) / 2;          // centro orizzontale
+            int y = boardHeight - boxHeight - 8;           // un po' sopra il bordo
+
+            g2.setColor(new Color(255, 255, 255, 200));
+            g2.fillRoundRect(x, y, boxWidth, boxHeight, 8, 8);
+
+            g2.setColor(Color.BLACK);
+            g2.drawString(
+                    fpsLabel,
+                    x + (boxWidth  - textWidth) / 2,           // testo centrato nel box
+                    y + (boxHeight - textHeight) / 2 + fm.getAscent()
+            );
         }
 
         private void drawGameOverOverlay(final Graphics2D g2,

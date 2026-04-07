@@ -120,4 +120,8 @@ public final class ControllerImpl implements Controller {
             Thread.currentThread().interrupt();
         }
     }
+
+    public int getCurrentFps() {
+        return gameLoopThread != null ? gameLoopThread.getCurrentFps() : 0;
+    }
 }

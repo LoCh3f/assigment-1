@@ -46,6 +46,14 @@ public final class GameLoopThread extends Thread {
 
             // 2. Snapshot + push to view (lock held only during snapshot copy)
             view.update(model.getSnapshot());
+            framesThisSecond++;
+            long now = System.currentTimeMillis();
+            if (now - lastFpsTimeMs >= 1000) {
+                currentFps = (int) framesThisSecond;
+                framesThisSecond = 0;
+                lastFpsTimeMs = now;
+            }
+
 
             // 3. Sleep for the remainder of the tick budget
             final long elapsed = System.currentTimeMillis() - startMs;
@@ -67,4 +75,11 @@ public final class GameLoopThread extends Thread {
     public void stopLoop() {
         interrupt();
     }
+    private long framesThisSecond = 0;
+    private long lastFpsTimeMs    = System.currentTimeMillis();
+    private volatile int currentFps = 0;
+    public int getCurrentFps() {
+        return currentFps;
+    }
+
 }

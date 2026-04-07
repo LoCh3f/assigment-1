@@ -61,10 +61,6 @@ public final class GameModelImpl implements GameModel {
 
     private final PhysicsEngine physicsEngine;
 
-    // -----------------------------------------------------------------------
-    // Constructor
-    // -----------------------------------------------------------------------
-
     /**
      * Constructs a new GameModelImpl with the given board dimensions and number of small balls.
      *
@@ -101,11 +97,6 @@ public final class GameModelImpl implements GameModel {
         this.botScore = 0;
         this.status = GameStatus.PLAYING;
     }
-
-    // -----------------------------------------------------------------------
-    // ModelInterface — synchronized public API
-    // -----------------------------------------------------------------------
-
     /**
      * {@inheritDoc}
      */
@@ -205,11 +196,6 @@ public final class GameModelImpl implements GameModel {
             wait();  // releases lock and sleeps
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Private logic — called only inside synchronized methods
-    // -----------------------------------------------------------------------
-
     /**
      * Handles balls that fell into holes this step.
      * Player balls → immediate game over.
@@ -231,24 +217,21 @@ public final class GameModelImpl implements GameModel {
                     return;
                 }
                 case SMALL -> {
-                    // Attribution: the last player to touch a small ball scores.
-                    // Simplified here — assign to the player whose ball is closest to the hole.
-                    // Replace with proper "last-touch" tracking if desired.
-                    scoreNearestPlayer(b);
+                    if (currentTurn == Turn.HUMAN) {
+                        humanScore++;
+                        if (humanScore > (balls.size()-2)/2) {
+                            status = GameStatus.HUMAN_WINS;
+                        }
+                    }
+                    if (currentTurn == Turn.BOT) {
+                        botScore++;
+                        if (botScore > (balls.size()-2)/2 ) {
+                            status = GameStatus.HUMAN_WINS;
+                        }
+                    }
+                    notifyAll();
                 }
             }
-        }
-    }
-
-    private void scoreNearestPlayer(final Ball smallBall) {
-        final double distHuman = smallBall.getPosition()
-                .subtract(humanBall.getPosition()).magnitude();
-        final double distBot = smallBall.getPosition()
-                .subtract(botBall.getPosition()).magnitude();
-        if (distHuman < distBot) {
-            humanScore++;
-        } else {
-            botScore++;
         }
     }
 
@@ -271,10 +254,6 @@ public final class GameModelImpl implements GameModel {
             notifyAll();
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Setup helpers
-    // -----------------------------------------------------------------------
 
     /**
      * Two holes at the top corners, as described in the assignment.
@@ -302,8 +281,8 @@ public final class GameModelImpl implements GameModel {
     }
 
     private boolean allBallsStopped() {
-        return balls.stream().allMatch(
-                b -> b.getVelocity().magnitude() <= STOP_THRESHOLD
-        );
+        return balls.stream()
+                .filter(b -> b.getType() == Ball.Type.BOT || b.getType() == Ball.Type.HUMAN)
+                .allMatch(b -> b.getVelocity().magnitude() <= STOP_THRESHOLD);
     }
 }

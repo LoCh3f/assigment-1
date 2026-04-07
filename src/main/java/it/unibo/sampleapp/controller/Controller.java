@@ -23,4 +23,6 @@ public interface Controller {
      * Handles the game start event.
      */
     void onGameStartRequested();
+
+    int getCurrentFps();
 }
