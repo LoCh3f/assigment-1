@@ -9,7 +9,7 @@ on:
     paths-ignore:
       - 'CHANGELOG.md'
       - 'LICENSE'
-      - 'README.md'
+      - '../../pcd-notes/fixes/README.md'
       - 'renovate.json'
   pull_request:
   workflow_dispatch:
