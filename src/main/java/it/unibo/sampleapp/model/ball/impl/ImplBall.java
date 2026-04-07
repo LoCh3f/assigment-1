@@ -12,6 +12,7 @@ public final class ImplBall implements Ball {
     private volatile Vector2D velocity;
     private final double radius;
     private final Type type;
+    private volatile Type lastCollidedWithType;  // Tracks which player ball last collided with this ball
 
     /**
      * Constructs a new ImplBall with the given parameters.
@@ -26,6 +27,7 @@ public final class ImplBall implements Ball {
         this.velocity = velocity;
         this.radius = radius;
         this.type = type;
+        this.lastCollidedWithType = null;
     }
 
     /**
@@ -84,5 +86,24 @@ public final class ImplBall implements Ball {
     @Override
     public Type getType() {
         return type;
+    }
+
+    /**
+     * Records that this ball collided with another ball of the given type.
+     * Used for tracking which player ball last hit this ball.
+     *
+     * @param otherType the type of ball that collided with this one
+     */
+    public void recordCollision(final Type otherType) {
+        this.lastCollidedWithType = otherType;
+    }
+
+    /**
+     * Returns the type of ball that last collided with this ball.
+     *
+     * @return the type of the last colliding ball, or null if no collision recorded
+     */
+    public Type getLastCollidedWithType() {
+        return lastCollidedWithType;
     }
 }

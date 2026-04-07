@@ -204,8 +204,9 @@ public final class GameModelImpl implements GameModel {
 
     /**
      * Handles balls that fell into holes this step.
-     * Player balls → immediate game over.
-     * Small balls → score the player who last touched them (simplified: random).
+     * Player balls → immediate game over (opponent wins).
+     * Small balls → score the player whose ball actually caused the collision.
+     * If a small ball was hit by another small ball, no score is awarded.
      *
      * @param pocketed the list of balls that fell into holes
      */
@@ -213,32 +214,52 @@ public final class GameModelImpl implements GameModel {
         for (final Ball b : pocketed) {
             switch (b.getType()) {
                 case HUMAN -> {
+                    // Human player's ball pocketed → Bot wins
                     status = GameStatus.BOT_WINS;
                     notifyAll();
                     return;
                 }
                 case BOT -> {
+                    // Bot player's ball pocketed → Human wins
                     status = GameStatus.HUMAN_WINS;
                     notifyAll();
                     return;
                 }
                 case SMALL -> {
-                    if (currentTurn == Turn.HUMAN) {
+                    // Get the ball type that last collided with this small ball
+                    final Ball.Type lastCollidedWith = getLastCollisionType(b);
+
+                    // Only score if the small ball was directly hit by a player ball
+                    if (lastCollidedWith == Ball.Type.HUMAN) {
                         humanScore++;
                         if (humanScore > (balls.size() - 2) / 2) {
                             status = GameStatus.HUMAN_WINS;
                         }
-                    }
-                    if (currentTurn == Turn.BOT) {
+                    } else if (lastCollidedWith == Ball.Type.BOT) {
                         botScore++;
                         if (botScore > (balls.size() - 2) / 2) {
-                            status = GameStatus.HUMAN_WINS;
+                            status = GameStatus.BOT_WINS;
                         }
                     }
+                    // If lastCollidedWith is SMALL or null, no score is awarded
                     notifyAll();
                 }
             }
         }
+    }
+
+    /**
+     * Retrieves the type of ball that last collided with a given ball.
+     * Used for determining scoring when small balls are pocketed.
+     *
+     * @param b the ball to check
+     * @return the type of the last colliding ball, or null if tracking is unavailable
+     */
+    private Ball.Type getLastCollisionType(final Ball b) {
+        if (b instanceof ImplBall implBall) {
+            return implBall.getLastCollidedWithType();
+        }
+        return null;
     }
 
     /**
