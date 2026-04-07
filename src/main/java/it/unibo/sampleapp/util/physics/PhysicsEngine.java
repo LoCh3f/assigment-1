@@ -15,10 +15,10 @@ import java.util.Map;
  * synchronize access to the ball list externally (done by GameModel).
  */
 public class PhysicsEngine {
-    private static final double CELL_SIZE = 40.0; // tune: ~2x largest radius
-    private static final double FRICTION_COEFFICIENT = 0.1; // tune this
-    private static final double MIN_SPEED = 0.01;           // below this → ball stops
-    private static final double EPSILON = 0.01; // extra separation gap in px
+    private static final double CELL_SIZE = 40.0;
+    private static final double FRICTION_COEFFICIENT = 0.1;
+    private static final double MIN_SPEED = 0.1;
+    private static final double EPSILON = 0.01;
     private static final long LOWER_32_MASK = 0xffffffffL;
 
     /**
@@ -49,10 +49,6 @@ public class PhysicsEngine {
         handleBallCollisions(balls);
         return checkHoles(balls, holes);
     }
-
-    // -----------------------------------------------------------------------
-    // Movement and friction
-    // -----------------------------------------------------------------------
 
     /**
      * Moves all balls based on their velocity and the time delta.
@@ -92,10 +88,6 @@ public class PhysicsEngine {
             }
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Border collisions — reflect velocity on each wall
-    // -----------------------------------------------------------------------
 
     /**
      * Handles collisions between balls and the board's borders.
@@ -146,10 +138,6 @@ public class PhysicsEngine {
             b.setVelocity(new Vector2D(newVx, newVy));
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Ball-ball elastic collisions
-    // -----------------------------------------------------------------------
 
     /**
      * Detects and resolves all ball-to-ball collisions.

@@ -8,25 +8,16 @@ import java.util.List;
 
 /**
  * Immutable snapshot of the game state.
- *
- * @param balls active in this specific snapshot.
- * @param humanScore score of the player.
- * @param botScore score of the bot.
- * @param status of the game (Win, Lose, Playing)
- * @param holes active.
- * @param width of the board.
- * @param height of the board.
- * @param currentTurn whose turn it is (HUMAN or BOT).
  */
 public record GameSnapshot(
-        List<BallSnapshot> balls,    // all active balls
+        List<BallSnapshot> balls,
         int humanScore,
         int botScore,
         GameStatus status,
-        List<Hole> holes,            // static, but view needs them
+        List<Hole> holes,
         int width,
         int height,
-        Turn currentTurn             // whose turn it is
+        Turn currentTurn
 ) {
     /**
      * Turn indicator enum.

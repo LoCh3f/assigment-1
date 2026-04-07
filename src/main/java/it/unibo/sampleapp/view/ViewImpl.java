@@ -38,12 +38,11 @@ public final class ViewImpl extends JFrame implements View {
     private final transient Controller controller;
     private final BoardPanel boardPanel;
 
-    // Aiming system state
     private boolean isAiming;
     private Point aimStartPoint;
     private Point aimEndPoint;
     private long aimStartTime;
-    private static final double MAX_POWER_TIME = 2000.0; // 2 seconds for max power
+    private static final double MAX_POWER_TIME = 2000.0;
     private static final double MIN_POWER_MULTIPLIER = 0.3;
     private static final double MAX_POWER_MULTIPLIER = 2.0;
 

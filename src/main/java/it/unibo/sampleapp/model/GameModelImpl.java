@@ -40,9 +40,9 @@ public final class GameModelImpl implements GameModel {
     private static final double BOT_BALL_X_RATIO = 0.75;
     private static final double BOT_BALL_Y_RATIO = 0.75;
     private static final double TOP_HALF_RATIO = 0.5;
-    private static final double STOP_THRESHOLD = 5.0; // must match
+    private static final double STOP_THRESHOLD = 5.0;
 
-    private Turn currentTurn = Turn.HUMAN;  // human starts
+    private Turn currentTurn = Turn.HUMAN;
 
     private final List<Ball> balls;
     private final List<Hole> holes;

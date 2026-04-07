@@ -50,7 +50,6 @@ public final class BoardPanel extends JPanel {
     private transient volatile GameSnapshot currentSnapshot;
     private transient volatile int currentFps;
 
-    // Aiming system state
     private transient volatile boolean isAiming;
     private transient volatile Point2D.Double aimStartPoint;
     private transient volatile Point2D.Double aimEndPoint;

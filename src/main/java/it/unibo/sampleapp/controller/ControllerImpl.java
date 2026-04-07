@@ -34,11 +34,9 @@ public final class ControllerImpl implements Controller {
     @SuppressFBWarnings("UwF")
     private View view;
 
-    // Multithreaded components
     private GameLoopThread gameLoopThread;
     private BotThread botThread;
 
-    // Task-based components
     private ScheduledExecutorService gameLoopExecutor;
     private ExecutorService botExecutor;
     private GameLoopTask gameLoopTask;
@@ -66,10 +64,6 @@ public final class ControllerImpl implements Controller {
     public void setView(final View view) {
         this.view = view;
     }
-
-    // -----------------------------------------------------------------------
-    // Lifecycle
-    // -----------------------------------------------------------------------
 
     /**
      * Starts the game loop and bot threads.
@@ -116,10 +110,6 @@ public final class ControllerImpl implements Controller {
             }
         }
     }
-
-    // -----------------------------------------------------------------------
-    // ViewObserver — called by the View on user events (Swing EDT)
-    // -----------------------------------------------------------------------
 
     /**
      * {@inheritDoc}

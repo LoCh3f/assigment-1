@@ -12,7 +12,7 @@ public final class ImplBall implements Ball {
     private volatile Vector2D velocity;
     private final double radius;
     private final Type type;
-    private volatile Type lastCollidedWithType;  // Tracks which player ball last collided with this ball
+    private volatile Type lastCollidedWithType;
 
     /**
      * Constructs a new ImplBall with the given parameters.
