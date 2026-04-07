@@ -1,5 +1,6 @@
 package it.unibo.sampleapp.view.board;
 
+import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.hole.Hole;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
@@ -116,7 +117,7 @@ public final class BoardPanel extends JPanel {
 
         // Draw aiming helper lines if aiming
         if (isAiming) {
-            drawAimingGuides(g2);
+            drawAimingGuides(g2, snap);
         }
     }
 
@@ -204,6 +205,7 @@ public final class BoardPanel extends JPanel {
      *
      * @param g2 the graphics context
      * @param fm the font metrics
+     * @param snap the game snapshot
      */
     private void drawTurnIndicator(final Graphics2D g2, final FontMetrics fm, final GameSnapshot snap) {
         final String turnText = switch (snap.currentTurn()) {
@@ -276,28 +278,70 @@ public final class BoardPanel extends JPanel {
         repaint(); // Repaint to update aiming visuals
     }
 
-    private void drawAimingGuides(final Graphics2D g2) {
+    private void drawAimingGuides(final Graphics2D g2, final GameSnapshot snap) {
         if (aimStartPoint == null || aimEndPoint == null) {
             return;
         }
 
-        // Draw the power vector
+        // Find the human ball position
+        final BallSnapshot humanBall = snap.balls().stream()
+                .filter(ball -> ball.type() == Ball.Type.HUMAN)
+                .findFirst()
+                .orElse(null);
+        if (humanBall == null) {
+            return;
+        }
+
+        // Calculate the direction vector from mouse drag
+        final double dx = aimEndPoint.x - aimStartPoint.x;
+        final double dy = aimEndPoint.y - aimStartPoint.y;
+        final double length = Math.sqrt(dx * dx + dy * dy);
+        if (length == 0) {
+            return;
+        }
+
+        // Normalize and scale the direction
+        final double scale = 100.0; // Length of the aiming line
+        final double scaledDx = dx / length * scale;
+        final double scaledDy = dy / length * scale;
+
+        // Draw the aiming line from the human ball in the direction of the aim
+        final double ballX = humanBall.position().x();
+        final double ballY = humanBall.position().y();
         g2.setColor(Color.RED);
         g2.drawLine(
-                (int) aimStartPoint.x,
-                (int) aimStartPoint.y,
-                (int) aimEndPoint.x,
-                (int) aimEndPoint.y
+                (int) ballX,
+                (int) ballY,
+                (int) (ballX + scaledDx),
+                (int) (ballY + scaledDy)
         );
 
-        // Draw a circle at the end point of the aim to indicate power
-        final int radius = (int) (powerMultiplier * 10); // Scale the radius by the power multiplier
-        g2.setColor(Color.YELLOW);
+        // Draw an arrowhead at the end of the line
+        drawArrowhead(g2, ballX, ballY, ballX + scaledDx, ballY + scaledDy);
+
+        // Draw a power indicator circle at the ball
+        final int radius = (int) (powerMultiplier * 15); // Scale the radius by the power multiplier
+        g2.setColor(new Color(255, 255, 0, 128)); // Semi-transparent yellow
         g2.fillOval(
-                (int) (aimEndPoint.x - radius),
-                (int) (aimEndPoint.y - radius),
+                (int) (ballX - radius),
+                (int) (ballY - radius),
                 radius * 2,
                 radius * 2
         );
+    }
+
+    private void drawArrowhead(final Graphics2D g2, final double x1, final double y1, final double x2, final double y2) {
+        final double arrowLength = 15.0;
+        final double arrowAngle = Math.PI / 6; // 30 degrees
+
+        final double angle = Math.atan2(y2 - y1, x2 - x1);
+        final double arrowX1 = x2 - arrowLength * Math.cos(angle - arrowAngle);
+        final double arrowY1 = y2 - arrowLength * Math.sin(angle - arrowAngle);
+        final double arrowX2 = x2 - arrowLength * Math.cos(angle + arrowAngle);
+        final double arrowY2 = y2 - arrowLength * Math.sin(angle + arrowAngle);
+
+        g2.setColor(Color.RED);
+        g2.drawLine((int) x2, (int) y2, (int) arrowX1, (int) arrowY1);
+        g2.drawLine((int) x2, (int) y2, (int) arrowX2, (int) arrowY2);
     }
 }
