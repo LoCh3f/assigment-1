@@ -10,6 +10,7 @@ Poool is a simplified pool game with the following elements:
 - **Board**: 900x600 pixel playing area with walls and holes.
 - **Balls**: 500 small balls, 1 human-controlled ball (blue), 1 bot-controlled ball (red).
 - **Objective**: Players take turns hitting balls. The player who pockets the most small balls wins.
+- **Asynchronous Gameplay**: Players can move whenever all balls are stopped, without turn restrictions.
 - **Physics**: Realistic ball movement with friction, elastic collisions, and wall bounces.
 - **Concurrency**: Asynchronous gameplay with separate threads/tasks for physics simulation, bot AI, and user input.
 
@@ -120,9 +121,9 @@ The window title will display "Pool - MULTITHREAD" or "Pool - TASKBASED" to indi
 
 ## Controls
 
-- **Arrow Keys**: Apply impulse to human ball (up, down, left, right).
-- **Mouse**: Click and drag to aim and shoot with power based on hold time.
-- **Gameplay**: Players alternate turns when all balls stop moving.
+- **Arrow Keys**: Apply impulse to human ball (up, down, left, right) - only works when all balls are stopped.
+- **Mouse**: Click and drag to aim and shoot with power based on hold time - only works when all balls are stopped.
+- **Gameplay**: Asynchronous play - both players can move whenever all balls are stopped, without turn restrictions.
 
 ## Testing
 

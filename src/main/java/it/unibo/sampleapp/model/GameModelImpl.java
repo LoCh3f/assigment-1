@@ -19,6 +19,9 @@ import java.util.List;
  * required by the assignment (no library support).
  *
  * <p>
+ * Asynchronous gameplay: Players can move whenever all balls are stopped.
+ *
+ * <p>
  * Thread interaction:
  *  - GameLoopThread → calls applyPhysicsStep() every tick
  *  - Swing EDT → calls applyImpulseToHuman() on key press
@@ -26,11 +29,6 @@ import java.util.List;
  *  - View → calls getSnapshot() each repaint
  */
 public final class GameModelImpl implements GameModel {
-    /**
-     * The turn enum.
-     */
-    public enum Turn { HUMAN, BOT }
-
     private static final double IMPULSE_STRENGTH = 200.0;
     private static final double PLAYER_BALL_RADIUS = 15.0;
     private static final double SMALL_BALL_RADIUS = 7.0;
@@ -41,8 +39,6 @@ public final class GameModelImpl implements GameModel {
     private static final double BOT_BALL_Y_RATIO = 0.75;
     private static final double TOP_HALF_RATIO = 0.5;
     private static final double STOP_THRESHOLD = 5.0;
-
-    private Turn currentTurn = Turn.HUMAN;
 
     private final List<Ball> balls;
     private final List<Hole> holes;
@@ -116,9 +112,6 @@ public final class GameModelImpl implements GameModel {
      */
     @Override
     public synchronized void applyImpulseToHuman(final Vector2D direction) {
-        if (currentTurn != Turn.HUMAN) {
-            return;
-        }
         // Asynchronous play: allow human to move whenever balls are stopped
         try {
             while (status == GameStatus.PLAYING && !allBallsStopped()) {
@@ -135,14 +128,10 @@ public final class GameModelImpl implements GameModel {
         humanBall.setVelocity(
                 humanBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
         );
-        currentTurn = Turn.BOT;
     }
 
     @Override
     public synchronized void applyImpulseToBot(final Vector2D direction) {
-        if (currentTurn != Turn.BOT) {
-            return;
-        }
         // Asynchronous play: allow bot to move whenever balls are stopped
         try {
             while (status == GameStatus.PLAYING && !allBallsStopped()) {
@@ -159,7 +148,6 @@ public final class GameModelImpl implements GameModel {
         botBall.setVelocity(
                 botBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
         );
-        currentTurn = Turn.HUMAN;
     }
 
     /**
@@ -170,13 +158,9 @@ public final class GameModelImpl implements GameModel {
         final List<BallSnapshot> snapshots = balls.stream()
                 .map(b -> new BallSnapshot(b.getPosition(), b.getRadius(), b.getType()))
                 .toList();
-        // Convert internal Turn enum to snapshot Turn enum
-        final GameSnapshot.Turn snapshotTurn = (currentTurn == Turn.HUMAN)
-                ? GameSnapshot.Turn.HUMAN
-                : GameSnapshot.Turn.BOT;
         return new GameSnapshot(snapshots,
                 humanScore, botScore,
-                status, List.copyOf(holes), boardWidth, boardHeight, snapshotTurn);
+                status, List.copyOf(holes), boardWidth, boardHeight, GameSnapshot.Turn.HUMAN);
     }
 
     /**
