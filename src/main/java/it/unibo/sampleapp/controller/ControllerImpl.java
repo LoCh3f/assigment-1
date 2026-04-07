@@ -90,7 +90,10 @@ public final class ControllerImpl implements Controller {
      */
     @Override
     public void onDirectionInput(final Vector2D impulse) {
-        model.applyImpulseToHuman(impulse);
+        // Run off the EDT so blocking wait() in GameModel doesn't freeze the UI
+        Thread.ofPlatform().name("input-relay").start(() ->
+                model.applyImpulseToHuman(impulse)
+        );
     }
 
     /**

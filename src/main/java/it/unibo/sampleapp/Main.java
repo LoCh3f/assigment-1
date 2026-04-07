@@ -14,7 +14,7 @@ public final class Main {
 
     private static final int BOARD_W = 900;
     private static final int BOARD_H = 600;
-    private static final int NUM_SMALL_BALLS = 20;
+    private static final int NUM_SMALL_BALLS = 500;
 
     /**
      * Private constructor to prevent instantiation of utility class.

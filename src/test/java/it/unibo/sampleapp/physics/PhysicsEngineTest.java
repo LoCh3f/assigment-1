@@ -34,7 +34,7 @@ class PhysicsEngineTest {
     private static final double NEGATIVE_VEL = -50.0;
     private static final double INITIAL_VEL = 10.0;
     private static final int COLLISION_STEPS = 10;
-    private static final int FRICTION_STEPS = 500;
+    private static final int FRICTION_STEPS = 5000;
 
     private final PhysicsEngine engine = new PhysicsEngine();
 
@@ -116,6 +116,8 @@ class PhysicsEngineTest {
         assertEquals(0.0, b.getVelocity().magnitude(), VELOCITY_TOLERANCE);
     }
 }
+
+
 
 
 

@@ -12,9 +12,6 @@ import java.util.Random;
  */
 public final class BotThread extends Thread {
 
-    private static final long MIN_WAIT_MS = 600;
-    private static final long MAX_WAIT_MS = 1400;
-
     private final GameModel model;
     private final Random rng = new Random();
 
@@ -34,21 +31,12 @@ public final class BotThread extends Thread {
      */
     @Override
     public void run() {
-        try {
-            // Block until the game is actually in PLAYING state
-            // (in case bot starts before loop)
-            while (true) {
-                final long waitMs = MIN_WAIT_MS + (long) (rng.nextDouble() * (MAX_WAIT_MS - MIN_WAIT_MS));
-                sleep(waitMs);
-
-                // Pick a random unit direction
-                final double angle = rng.nextDouble() * 2 * Math.PI;
-                final Vector2D direction = new Vector2D(Math.cos(angle), Math.sin(angle));
-
-                model.applyImpulseToBot(direction);
-            }
-        } catch (final InterruptedException e) {
-            currentThread().interrupt();
+        while (true) {
+            // Block inside the model until it's bot's turn and balls stopped
+            final double angle = rng.nextDouble() * 2 * Math.PI;
+            final Vector2D direction = new Vector2D(Math.cos(angle), Math.sin(angle));
+            model.applyImpulseToBot(direction);
+            // After this, physics will run, balls will move; next call will block again
         }
     }
 

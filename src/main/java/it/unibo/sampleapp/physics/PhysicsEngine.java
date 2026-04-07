@@ -5,7 +5,9 @@ import it.unibo.sampleapp.model.hole.Hole;
 import it.unibo.sampleapp.util.Vector2D;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Stateless physics engine. All methods are pure functions — no fields,
@@ -13,11 +15,11 @@ import java.util.List;
  * synchronize access to the ball list externally (done by GameModel).
  */
 public class PhysicsEngine {
-
-    private static final double FRICTION_COEFFICIENT = 0.8; // tune this
-    private static final double MIN_SPEED = 0.5;           // below this → ball stops
-    private static final double SMALL_BALL_MASS = 1.0;
-    private static final double PLAYER_BALL_MASS = 3.0;    // heavier = more realistic
+    private static final double CELL_SIZE = 40.0; // tune: ~2x largest radius
+    private static final double FRICTION_COEFFICIENT = 0.1; // tune this
+    private static final double MIN_SPEED = 0.01;           // below this → ball stops
+    private static final double EPSILON = 0.01; // extra separation gap in px
+    private static final long LOWER_32_MASK = 0xffffffffL;
 
     /**
      * Main simulation step — call this every tick from the game loop to advance physics.
@@ -160,10 +162,48 @@ public class PhysicsEngine {
      * @param balls the list of all active balls
      */
     private void handleBallCollisions(final List<Ball> balls) {
-        final int n = balls.size();
-        for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                resolveCollision(balls.get(i), balls.get(j));
+        // Build grid: key = (cx, cy) packed into long, value = list of balls
+        final Map<Long, List<Ball>> grid = new HashMap<>();
+
+        for (final Ball b : balls) {
+            final int cx = (int) (b.getPosition().x() / CELL_SIZE);
+            final int cy = (int) (b.getPosition().y() / CELL_SIZE);
+            final long key = (((long) cx) << 32) | (cy & LOWER_32_MASK);
+            grid.computeIfAbsent(key, k -> new ArrayList<>()).add(b);
+        }
+
+        // For each cell, test collisions inside it and neighbouring cells
+        for (final Map.Entry<Long, List<Ball>> entry : grid.entrySet()) {
+            final long key = entry.getKey();
+            final int cx = (int) (key >> 32);
+            final int cy = (int) key;
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    final long neighbourKey = (((long) (cx + dx)) << 32) | ((cy + dy) & LOWER_32_MASK);
+                    final List<Ball> cellBalls = entry.getValue();
+                    final List<Ball> neighbourBalls = grid.get(neighbourKey);
+                    if (neighbourBalls == null) {
+                        continue;
+                    }
+
+                    // To avoid double work, use <= condition carefully
+                    if (neighbourKey == key) {
+                        // Same cell: classic i<j loop
+                        for (int i = 0; i < cellBalls.size(); i++) {
+                            for (int j = i + 1; j < cellBalls.size(); j++) {
+                                resolveCollision(cellBalls.get(i), cellBalls.get(j));
+                            }
+                        }
+                    } else if (neighbourKey > key) {
+                        // Different cell pairs: all combinations, but only once
+                        for (final Ball a : cellBalls) {
+                            for (final Ball b : neighbourBalls) {
+                                resolveCollision(a, b);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -187,9 +227,10 @@ public class PhysicsEngine {
      * @param a the first ball involved in the collision
      * @param b the second ball involved in the collision
      */
+
     private void resolveCollision(final Ball a, final Ball b) {
-        final Vector2D posA = a.getPosition();
-        final Vector2D posB = b.getPosition();
+        Vector2D posA = a.getPosition();
+        Vector2D posB = b.getPosition();
 
         // Vector from A to B
         final Vector2D delta = posB.subtract(posA);
@@ -197,42 +238,48 @@ public class PhysicsEngine {
         final double minDist = a.getRadius() + b.getRadius();
 
         // No collision
-        if (dist >= minDist || dist == 0) {
+        if (dist == 0 || dist >= minDist) {
             return;
         }
 
-        // --- 1. Positional correction: push balls apart so they don't overlap ---
-        final Vector2D normal = delta.normalize();
-        final double overlap = minDist - dist;
-        final double mA = getMass(a);
-        final double mB = getMass(b);
-        final double totalMass = mA + mB;
+        // --- 1. Positional correction (push apart) ---
+        final double overlap = minDist - dist + EPSILON;
+        final Vector2D n = delta.scale(1.0 / dist); // unit normal A→B
 
-        a.setPosition(posA.subtract(normal.scale(overlap * (mB / totalMass))));
-        b.setPosition(posB.add(normal.scale(overlap * (mA / totalMass))));
+        posA = posA.subtract(n.scale(overlap / 2));
+        posB = posB.add(n.scale(overlap / 2));
+        a.setPosition(posA);
+        b.setPosition(posB);
 
-        // --- 2. Velocity update via impulse formula ---
-        final Vector2D velA = a.getVelocity();
-        final Vector2D velB = b.getVelocity();
+        // --- 2. Velocity resolution in normal / tangent basis ---
 
-        final Vector2D relVel = velA.subtract(velB);
-        final double relVelAlongNormal = relVel.dot(normal);
+        final Vector2D vA = a.getVelocity();
+        final Vector2D vB = b.getVelocity();
 
-        // Only resolve if balls are approaching each other
-        if (relVelAlongNormal > 0) {
+        // Tangent (perpendicular to n)
+        final Vector2D t = new Vector2D(-n.y(), n.x());
+
+        // Decompose velocities
+        final double normala = vA.dot(n);
+        final double tangenta = vA.dot(t);
+        final double normalb = vB.dot(n);
+        final double tangentb = vB.dot(t);
+
+        // If balls are separating along normal, don't resolve
+        if (normala - normalb <= 0) {
             return;
         }
 
-        // Impulse scalar: p = 2 * (vA - vB)·n / (mA + mB)
-        final double impulse = 2.0 * relVelAlongNormal / totalMass;
+        // For equal mass: swap normal components, keep tangents [web:63][web:36]
+        final double normalaftera = normalb;
+        final double normalafterb = normala;
 
-        a.setVelocity(velA.subtract(normal.scale(impulse * mB)));
-        b.setVelocity(velB.add(normal.scale(impulse * mA)));
+        final Vector2D velocityaftera = n.scale(normalaftera).add(t.scale(tangenta));
+        final Vector2D velocityafterb = n.scale(normalafterb).add(t.scale(tangentb));
+
+        a.setVelocity(velocityaftera);
+        b.setVelocity(velocityafterb);
     }
-
-    // -----------------------------------------------------------------------
-    // Hole detection
-    // -----------------------------------------------------------------------
 
     /**
      * Detects and removes balls that have fallen into holes.
@@ -260,34 +307,5 @@ public class PhysicsEngine {
         }
         balls.removeAll(pocketed);
         return pocketed;
-    }
-
-    // -----------------------------------------------------------------------
-    // Helper methods
-    // -----------------------------------------------------------------------
-
-    /**
-     * Determines the mass of a ball based on its type.
-     *
-     * <p>
-     * Different ball types have different masses to simulate realistic physics:
-     * <ul>
-     *   <li>{@link Ball.Type#SMALL SMALL}: lightweight ball with mass 1.0</li>
-     *   <li>{@link Ball.Type#HUMAN HUMAN}: regular ball with mass 3.0</li>
-     *   <li>{@link Ball.Type#BOT BOT}: regular ball with mass 3.0</li>
-     * </ul>
-     *
-     * <p>
-     * Heavier balls (HUMAN and BOT) are more realistic and will have more momentum
-     * compared to the lighter SMALL balls.
-     *
-     * @param b the ball whose mass is to be determined
-     * @return the mass value appropriate for the ball's type
-     */
-    private double getMass(final Ball b) {
-        return switch (b.getType()) {
-            case HUMAN, BOT -> PLAYER_BALL_MASS;
-            case SMALL -> SMALL_BALL_MASS;
-        };
     }
 }

@@ -25,11 +25,11 @@ import java.util.List;
  *  - BotThread → calls applyImpulseToBot() on its own schedule
  *  - View → calls getSnapshot() each repaint
  */
-public class GameModelImpl implements GameModel {
-
-    // -----------------------------------------------------------------------
-    // Constants
-    // -----------------------------------------------------------------------
+public final class GameModelImpl implements GameModel {
+    /**
+     * The turn enum.
+     */
+    public enum Turn { HUMAN, BOT }
 
     private static final double IMPULSE_STRENGTH = 200.0;
     private static final double PLAYER_BALL_RADIUS = 15.0;
@@ -40,6 +40,9 @@ public class GameModelImpl implements GameModel {
     private static final double BOT_BALL_X_RATIO = 0.75;
     private static final double BOT_BALL_Y_RATIO = 0.75;
     private static final double TOP_HALF_RATIO = 0.5;
+    private static final double STOP_THRESHOLD = 2.0; // must match
+
+    private Turn currentTurn = Turn.HUMAN;  // human starts
 
     // -----------------------------------------------------------------------
     // State — only accessed inside synchronized methods
@@ -115,6 +118,15 @@ public class GameModelImpl implements GameModel {
         final List<Ball> pocketed = physicsEngine.step(balls, boardWidth, boardHeight, holes, dt);
         handlePocketedBalls(pocketed);
         checkWinCondition();
+
+        // If game still playing and all balls have stopped → switch turn
+        if (status == GameStatus.PLAYING && allBallsStopped()) {
+            currentTurn = (currentTurn == Turn.HUMAN) ? Turn.BOT : Turn.HUMAN;
+            notifyAll(); // wake up whoever is waiting for their turn
+        } else {
+            // still wake up waiters so they can re-check ball speeds
+            notifyAll();
+        }
     }
 
     /**
@@ -122,22 +134,39 @@ public class GameModelImpl implements GameModel {
      */
     @Override
     public synchronized void applyImpulseToHuman(final Vector2D direction) {
+        try {
+            while (status == GameStatus.PLAYING
+                    && (currentTurn != Turn.HUMAN || !allBallsStopped())) {
+                wait();
+            }
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
         if (status != GameStatus.PLAYING) {
             return;
         }
+
         humanBall.setVelocity(
                 humanBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
         );
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public synchronized void applyImpulseToBot(final Vector2D direction) {
+        try {
+            while (status == GameStatus.PLAYING
+                    && (currentTurn != Turn.BOT || !allBallsStopped())) {
+                wait();
+            }
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
         if (status != GameStatus.PLAYING) {
             return;
         }
+
         botBall.setVelocity(
                 botBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
         );
@@ -186,7 +215,7 @@ public class GameModelImpl implements GameModel {
      * Player balls → immediate game over.
      * Small balls → score the player who last touched them (simplified: random).
      *
-     * @param pocketed the list oList.copyOf(holes)f balls that fell into holes
+     * @param pocketed the list of balls that fell into holes
      */
     private void handlePocketedBalls(final List<Ball> pocketed) {
         for (final Ball b : pocketed) {
@@ -270,5 +299,11 @@ public class GameModelImpl implements GameModel {
                     Ball.Type.SMALL
             ));
         }
+    }
+
+    private boolean allBallsStopped() {
+        return balls.stream().allMatch(
+                b -> b.getVelocity().magnitude() <= STOP_THRESHOLD
+        );
     }
 }
