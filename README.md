@@ -21,28 +21,28 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 ┌─────────────────────────────────────────────┐
 │                  View (Swing/AWT)           │  ← Passive renderer
 │                                             │
-│  ← reads snapshot                          │
+│  ← reads snapshot                           │
 └─────────────────────┬───────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────┐
-│              Controller                      │  ← Handles input, coordinates
+│              Controller                     │  ← Handles input, coordinates
 │                                             │
 │  updates →                                  │
 └─────────────────────┬───────────────────────┘
                       │
-┌─────────────────────▼───────────────────────┐
+┌─────────────────────▼────────────────────────┐
 │              GameModel (Monitor)             │  ← Shared mutable state
 │  - List<Ball> balls                          │
 │  - int humanScore, botScore                  │
 │  - GameStatus status                         │
 │  + synchronized getters/setters              │
 └───┬───────────────┬───────────────┬──────────┘
-│               │               │
-┌───▼────┐  ┌───────▼──────┐  ┌────▼──────────┐
+    │               │               │
+┌───▼────┐  ┌───────▼──────┐  ┌─────▼─────────┐
 │Physics │  │  BotAgent    │  │ Input Relay   │
 │Loop    │  │  (async)     │  │ (Swing EDT)   │
 │Thread/ │  │  Thread/Task │  │ (Event-driven)│
-│Task    │  │              │  │                │
+│Task    │  │              │  │               │
 └────────┘  └──────────────┘  └───────────────┘
 ```
 
@@ -143,25 +143,35 @@ src/main/java/it/unibo/sampleapp/
 ├── model/
 │   ├── GameModel.java           # Model interface
 │   ├── GameModelImpl.java       # Model implementation (monitor)
-│   ├── ball/                    # Ball-related classes
-│   ├── hole/                    # Hole detection
-│   ├── snapshot/                # Immutable snapshots
-│   └── status/                  # Game status enum
-├── physics/
-│   └── PhysicsEngine.java       # Physics simulation
+│   ├── ball/
+│   │   ├── Ball.java            # Ball interface
+│   │   └── impl/
+│   │       └── ImplBall.java    # Ball implementation
+│   ├── hole/
+│   │   ├── Hole.java            # Hole interface
+│   │   └── impl/
+│   │       └── HoleImpl.java    # Hole implementation
+│   ├── snapshot/
+│   │   ├── BallSnapshot.java    # Immutable ball snapshot
+│   │   └── GameSnapshot.java    # Immutable game snapshot
+│   └── status/
+│       └── GameStatus.java      # Game status enum
 ├── util/
-│   └── Vector2D.java            # 2D vector utilities
+│   ├── Vector2D.java            # 2D vector utilities
+│   └── physics/
+│       └── PhysicsEngine.java   # Physics simulation
 ├── view/
 │   ├── View.java                # View interface
 │   ├── ViewImpl.java            # Swing view implementation
-│   └── board/                   # Board rendering
+│   └── board/
+│       └── BoardPanel.java      # Board rendering panel
 └── concurrent/
     ├── multithread/             # Thread-based concurrency
-    │   ├── GameLoopThread.java
-    │   └── BotThread.java
+    │   ├── BotThread.java       # Bot AI thread
+    │   └── GameLoopThread.java  # Physics loop thread
     └── taskbased/               # Executor-based concurrency
-        ├── GameLoopTask.java
-        └── BotTask.java
+        ├── BotTask.java         # Bot AI task
+        └── GameLoopTask.java    # Physics loop task
 ```
 
 ## Key Design Decisions
