@@ -11,6 +11,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.Point2D;
 import java.io.Serial;
 
 /**
@@ -48,6 +49,12 @@ public final class BoardPanel extends JPanel {
     private String gameOverMessage;
     private transient volatile GameSnapshot currentSnapshot;
     private transient volatile int currentFps;
+
+    // Aiming system state
+    private transient volatile boolean isAiming;
+    private transient volatile Point2D.Double aimStartPoint;
+    private transient volatile Point2D.Double aimEndPoint;
+    private transient volatile double powerMultiplier;
 
     /**
      * Constructs a BoardPanel with specified dimensions.
@@ -106,6 +113,11 @@ public final class BoardPanel extends JPanel {
 
         if (gameOverMessage != null) {
             drawGameOverOverlay(g2, gameOverMessage);
+        }
+
+        // Draw aiming helper lines if aiming
+        if (isAiming) {
+            drawAimingGuides(g2);
         }
     }
 
@@ -185,22 +197,17 @@ public final class BoardPanel extends JPanel {
         );
 
         // Draw turn indicator at the top
-        drawTurnIndicator(g2, snap, fm);
+        drawTurnIndicator(g2, fm);
     }
 
     /**
-     * Draws a turn indicator showing whose turn it is.
+     * Draws a turn indicator showing asynchronous play mode.
      *
      * @param g2 the graphics context
-     * @param snap the game snapshot containing turn information
      * @param fm the font metrics
      */
-    private void drawTurnIndicator(final Graphics2D g2, final GameSnapshot snap,
-            final FontMetrics fm) {
-        // Get the actual current turn from the snapshot
-        final boolean isHumanTurn = snap.currentTurn() == GameSnapshot.Turn.HUMAN;
-
-        final String turnText = isHumanTurn ? "YOUR TURN (Use arrow keys)" : "BOT IS PLAYING...";
+    private void drawTurnIndicator(final Graphics2D g2, final FontMetrics fm) {
+        final String turnText = "ASYNC PLAY - Move when balls stop";
         final int textWidth = fm.stringWidth(turnText);
         final int textHeight = fm.getHeight();
 
@@ -211,7 +218,7 @@ public final class BoardPanel extends JPanel {
         final int turnY = TURN_BOX_Y;
 
         // Draw semi-transparent background
-        final Color turnBgColor = isHumanTurn ? COLOR_TURN_HUMAN : COLOR_TURN_BOT;
+        final Color turnBgColor = new Color(100, 100, 100, 180); // Gray for async mode
 
         g2.setColor(turnBgColor);
         g2.fillRoundRect(turnX, turnY, turnBoxW, turnBoxH, CORNER_RADIUS, CORNER_RADIUS);
@@ -244,5 +251,48 @@ public final class BoardPanel extends JPanel {
                 (boardWidth - fm.stringWidth(sub)) / 2,
                 (boardHeight + msgH) / 2 + MESSAGE_OFFSET);
     }
-}
 
+    /**
+     * Sets the aiming state variables.
+     *
+     * @param isAiming        whether the player is currently aiming
+     * @param aimStartPoint   the starting point of the aim (where the mouse pressed)
+     * @param aimEndPoint     the ending point of the aim (where the mouse released)
+     * @param powerMultiplier the multiplier for power based on aim length
+     */
+    public void setAimingState(final boolean isAiming,
+                                final Point2D.Double aimStartPoint,
+                                final Point2D.Double aimEndPoint,
+                                final double powerMultiplier) {
+        this.isAiming = isAiming;
+        this.aimStartPoint = aimStartPoint;
+        this.aimEndPoint = aimEndPoint;
+        this.powerMultiplier = powerMultiplier;
+        repaint(); // Repaint to update aiming visuals
+    }
+
+    private void drawAimingGuides(final Graphics2D g2) {
+        if (aimStartPoint == null || aimEndPoint == null) {
+            return;
+        }
+
+        // Draw the power vector
+        g2.setColor(Color.RED);
+        g2.drawLine(
+                (int) aimStartPoint.x,
+                (int) aimStartPoint.y,
+                (int) aimEndPoint.x,
+                (int) aimEndPoint.y
+        );
+
+        // Draw a circle at the end point of the aim to indicate power
+        final int radius = (int) (powerMultiplier * 10); // Scale the radius by the power multiplier
+        g2.setColor(Color.YELLOW);
+        g2.fillOval(
+                (int) (aimEndPoint.x - radius),
+                (int) (aimEndPoint.y - radius),
+                radius * 2,
+                radius * 2
+        );
+    }
+}

@@ -40,13 +40,9 @@ public final class GameModelImpl implements GameModel {
     private static final double BOT_BALL_X_RATIO = 0.75;
     private static final double BOT_BALL_Y_RATIO = 0.75;
     private static final double TOP_HALF_RATIO = 0.5;
-    private static final double STOP_THRESHOLD = 2.0; // must match
+    private static final double STOP_THRESHOLD = 5.0; // must match
 
     private Turn currentTurn = Turn.HUMAN;  // human starts
-
-    // -----------------------------------------------------------------------
-    // State — only accessed inside synchronized methods
-    // -----------------------------------------------------------------------
 
     private final List<Ball> balls;
     private final List<Hole> holes;
@@ -111,14 +107,8 @@ public final class GameModelImpl implements GameModel {
         handlePocketedBalls(pocketed);
         checkWinCondition();
 
-        // If game still playing and all balls have stopped → switch turn
-        if (status == GameStatus.PLAYING && allBallsStopped()) {
-            currentTurn = (currentTurn == Turn.HUMAN) ? Turn.BOT : Turn.HUMAN;
-            notifyAll(); // wake up whoever is waiting for their turn
-        } else {
-            // still wake up waiters so they can re-check ball speeds
-            notifyAll();
-        }
+        // Asynchronous play: no turn switching, just wake up waiting players
+        notifyAll();
     }
 
     /**
@@ -126,9 +116,9 @@ public final class GameModelImpl implements GameModel {
      */
     @Override
     public synchronized void applyImpulseToHuman(final Vector2D direction) {
+        // Asynchronous play: allow human to move whenever balls are stopped
         try {
-            while (status == GameStatus.PLAYING
-                    && (currentTurn != Turn.HUMAN || !allBallsStopped())) {
+            while (status == GameStatus.PLAYING && !allBallsStopped()) {
                 wait();
             }
         } catch (final InterruptedException e) {
@@ -146,9 +136,9 @@ public final class GameModelImpl implements GameModel {
 
     @Override
     public synchronized void applyImpulseToBot(final Vector2D direction) {
+        // Asynchronous play: allow bot to move whenever balls are stopped
         try {
-            while (status == GameStatus.PLAYING
-                    && (currentTurn != Turn.BOT || !allBallsStopped())) {
+            while (status == GameStatus.PLAYING && !allBallsStopped()) {
                 wait();
             }
         } catch (final InterruptedException e) {

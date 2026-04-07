@@ -8,8 +8,13 @@ import it.unibo.sampleapp.util.Vector2D;
 import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.Point2D;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.sampleapp.view.board.BoardPanel;
 
@@ -33,6 +38,15 @@ public final class ViewImpl extends JFrame implements View {
     private final transient Controller controller;
     private final BoardPanel boardPanel;
 
+    // Aiming system state
+    private boolean isAiming;
+    private Point aimStartPoint;
+    private Point aimEndPoint;
+    private long aimStartTime;
+    private static final double MAX_POWER_TIME = 2000.0; // 2 seconds for max power
+    private static final double MIN_POWER_MULTIPLIER = 0.3;
+    private static final double MAX_POWER_MULTIPLIER = 2.0;
+
     /**
      * Constructs a new ViewImpl with the given board dimensions and observer.
      *
@@ -55,6 +69,17 @@ public final class ViewImpl extends JFrame implements View {
         setLocationRelativeTo(null);
 
         setupKeyBindings();
+        setupMouseControls();
+    }
+
+    /**
+     * Sets the concurrency mode and updates the window title.
+     *
+     * @param mode the concurrency mode as a string
+     */
+    @Override
+    public void setConcurrencyMode(final String mode) {
+        setTitle("Pool - " + mode);
     }
 
     /**
@@ -68,6 +93,13 @@ public final class ViewImpl extends JFrame implements View {
     public void update(final GameSnapshot snapshot) {
         boardPanel.setCurrentSnapshot(snapshot);
         boardPanel.setCurrentFps(controller.getCurrentFps());
+        // Convert Point to Point2D.Double for aiming state
+        final Point2D.Double startPoint = isAiming && aimStartPoint != null
+                ? new Point2D.Double(aimStartPoint.x, aimStartPoint.y) : null;
+        final Point2D.Double endPoint = isAiming && aimEndPoint != null
+                ? new Point2D.Double(aimEndPoint.x, aimEndPoint.y) : null;
+        boardPanel.setAimingState(isAiming, startPoint, endPoint,
+                calculatePowerMultiplier());
         boardPanel.repaint();
     }
 
@@ -100,6 +132,49 @@ public final class ViewImpl extends JFrame implements View {
         });
         setFocusable(true);
         requestFocusInWindow();
+    }
+
+    private void setupMouseControls() {
+        boardPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(final MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) { // Left click
+                    isAiming = true;
+                    aimStartPoint = e.getPoint();
+                    aimStartTime = System.currentTimeMillis();
+                }
+            }
+
+            @Override
+            public void mouseReleased(final MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1 && isAiming) {
+                    isAiming = false;
+                    aimEndPoint = e.getPoint();
+                    final double powerMultiplier = calculatePowerMultiplier();
+                    controller.onShoot(aimStartPoint, aimEndPoint, powerMultiplier);
+                }
+            }
+        });
+
+        boardPanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(final MouseEvent e) {
+                if (isAiming) {
+                    aimEndPoint = e.getPoint();
+                    final double powerMultiplier = calculatePowerMultiplier();
+                    controller.onAim(aimStartPoint, aimEndPoint, powerMultiplier);
+                }
+            }
+        });
+    }
+
+    private double calculatePowerMultiplier() {
+        if (isAiming) {
+            final double elapsedTime = System.currentTimeMillis() - aimStartTime;
+            return Math.min(MAX_POWER_MULTIPLIER, Math.max(MIN_POWER_MULTIPLIER,
+                    elapsedTime / MAX_POWER_TIME));
+        }
+        return 0;
     }
 
     private String formatResult(final GameStatus status) {

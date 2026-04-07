@@ -25,6 +25,11 @@ public interface View {
      * @param result the game result status
      */
     void displayGameOver(GameStatus result);
+
+    /**
+     * Sets the concurrency mode for display purposes.
+     *
+     * @param mode the concurrency mode as a string
+     */
+    void setConcurrencyMode(String mode);
 }
-
-
