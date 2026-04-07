@@ -140,10 +140,6 @@ public final class ControllerImpl implements Controller {
         start();
     }
 
-    // -----------------------------------------------------------------------
-    // Game-over watcher
-    // -----------------------------------------------------------------------
-
     private void watchForGameOver() {
         try {
             // Blocks until GameModel.notifyAll() is called on game over
