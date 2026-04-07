@@ -1,17 +1,35 @@
-# Assignment #01 — Poool Game
+# Poool Game
+
 **PCD a.y. 2024-2025 — ISI LM UNIBO — Cesena Campus**
 
----
+A concurrent implementation of a pool-like game where a human player and a bot compete to pocket small balls using physics simulation. The game features two concurrency models: multithreaded (using `Thread` instances) and task-based (using Java's `Executor` framework).
 
-## High-Level Architecture: MVC + Active Components
+## Overview
 
-The architecture follows a layered **MVC** pattern where concurrency lives in dedicated active components, combining the physics loop approach (sketch01) and the MVC async input approach (sketch02).
+Poool is a simplified pool game with the following elements:
+- **Board**: 900x600 pixel playing area with walls and holes.
+- **Balls**: 500 small balls, 1 human-controlled ball (blue), 1 bot-controlled ball (red).
+- **Objective**: Players take turns hitting balls. The player who pockets the most small balls wins.
+- **Physics**: Realistic ball movement with friction, elastic collisions, and wall bounces.
+- **Concurrency**: Asynchronous gameplay with separate threads/tasks for physics simulation, bot AI, and user input.
+
+## Architecture
+
+The application follows an **MVC (Model-View-Controller)** pattern with dedicated active components for concurrency:
 
 ```
 ┌─────────────────────────────────────────────┐
-│                  GameView (Swing/AWT)        │  ← Passive renderer
+│                  View (Swing/AWT)           │  ← Passive renderer
+│                                             │
+│  ← reads snapshot                          │
 └─────────────────────┬───────────────────────┘
-│ reads (snapshot)
+                      │
+┌─────────────────────▼───────────────────────┐
+│              Controller                      │  ← Handles input, coordinates
+│                                             │
+│  updates →                                  │
+└─────────────────────┬───────────────────────┘
+                      │
 ┌─────────────────────▼───────────────────────┐
 │              GameModel (Monitor)             │  ← Shared mutable state
 │  - List<Ball> balls                          │
@@ -21,158 +39,144 @@ The architecture follows a layered **MVC** pattern where concurrency lives in de
 └───┬───────────────┬───────────────┬──────────┘
 │               │               │
 ┌───▼────┐  ┌───────▼──────┐  ┌────▼──────────┐
-│Physics │  │  BotAgent    │  │ InputController│
-│Engine  │  │  Thread      │  │ (Keyboard)     │
-│Thread  │  │  (async)     │  │ (Swing EDT)    │
+│Physics │  │  BotAgent    │  │ Input Relay   │
+│Loop    │  │  (async)     │  │ (Swing EDT)   │
+│Thread/ │  │  Thread/Task │  │ (Event-driven)│
+│Task    │  │              │  │                │
 └────────┘  └──────────────┘  └───────────────┘
 ```
 
+### MVC Flow
+- **Model**: `GameModel` holds game state and acts as a monitor.
+- **View**: Displays game state via immutable snapshots, receives updates from Controller.
+- **Controller**: Processes user input, triggers model updates, and pushes view updates.
+- **Active Components**: Physics loop and bot AI run asynchronously, updating the model and triggering view refreshes.
 
----
+### Key Components
 
-## Core Entities (Model Layer)
+- **Model**: `GameModel` acts as a monitor with synchronized methods for thread-safe access to game state.
+- **View**: Swing-based GUI displaying the board, balls, scores, and FPS. Uses immutable snapshots to avoid blocking the physics loop.
+- **Controller**: Handles user input and coordinates between model and view.
+- **Physics**: Simulates ball movement, collisions, friction, and hole detection.
+- **Concurrency**: Two implementations for the physics loop and bot AI.
 
-- **`Ball`**: position `(x,y)`, velocity `(vx,vy)`, radius, type (`SMALL`, `HUMAN`, `BOT`); methods `move(dt)`, `applyFriction(dt)`, `checkBorderBounce()`
-- **`GameModel`** (the monitor): holds `List<Ball>`, scores, `GameStatus` enum (`PLAYING`, `HUMAN_WINS`, `BOT_WINS`), hole positions. All mutating methods are `synchronized` — this is the custom monitor the assignment requires.
-- **`PhysicsEngine`**: stateless utility class — elastic collision math, hole detection, friction decay. No threading inside, called by the loop thread.
+## Concurrency Modes
 
----
+### Multithreaded Version (Default)
+- `GameLoopThread`: Runs the physics simulation at ~60 FPS using a `Thread`.
+- `BotThread`: Asynchronous bot AI using a `Thread` that waits for balls to stop before making moves.
 
-## Version 1 — Multithreaded Architecture
+### Task-Based Version
+- `GameLoopTask`: Physics simulation using `ScheduledExecutorService` for periodic execution.
+- `BotTask`: Bot AI using `ExecutorService`, resubmitting itself after each move.
 
-Four platform threads, all interacting through `GameModel` as a monitor:
+Both versions ensure the `GameModel` monitor is used correctly, with `wait()`/`notifyAll()` for synchronization on game-over conditions.
 
-| Thread | Responsibility | Rate |
-|---|---|---|
-| `GameLoopThread` | Steps physics, checks holes/win condition, triggers repaint | ~60 fps |
-| `BotThread` | Decides bot impulse direction & timing, updates bot ball velocity | Asynchronous |
-| Swing EDT | Handles `KeyListener` impulses, updates human ball velocity | Event-driven |
-| Swing Repaint Thread | Calls `view.repaint()` with a state snapshot | On demand |
+## Build Instructions
 
-The `GameLoopThread` is the core loop — it calls `physicsEngine.step(model, dt)` which internally:
-1. Moves all balls by `dt`
-2. Applies friction
-3. Checks ball-ball collisions
-4. Checks hole detection
+### Prerequisites
+- Java 21 or later
+- Gradle 8.0 or later (wrapper included)
 
-**Synchronization**: `GameModel` uses `wait()`/`notifyAll()` for the game-over condition (bot/human threads wait, loop thread notifies when status changes). This is the custom monitor implementation.
-
----
-
-## Version 2 — Executor Framework
-
-Replace the single `GameLoopThread` loop body with parallel sub-tasks using `ExecutorService`:
-```
-ScheduledExecutorService scheduler  ← ticks at fixed rate
-│
-▼
-PhysicsStepTask (Callable)
-│
-├── partition balls into N batches (N = # cores)
-│         └── submit N MoveTask(batch) → List<Future>
-│              [parallel: move + friction per ball]
-│
-├── join all futures (get())
-│
-└── CollisionDetectionTask (single-threaded phase)
-└── resolve collisions, holes, scores
+### Build
+```bash
+./gradlew build
 ```
 
+This compiles the code, runs tests, and generates JAR files in `build/libs/`.
 
-Key design choice: **movement/friction is parallelizable** (no shared writes between balls), but **collision detection/resolution is a sequential critical section** to avoid data races. This maps cleanly onto a fork-join pattern.
-
----
-
-## Concurrency Analysis
-
-The main concurrent aspects to address in the report:
-
-- **Shared mutable state**: `GameModel` is accessed by 3+ threads simultaneously — needs the monitor
-- **Asynchronous input**: keyboard events arrive on the Swing EDT, independent of the physics tick rate
-- **Bot asynchrony**: bot throws happen on its own schedule, completely independent of the human player
-- **Physics parallelism**: with thousands of balls, splitting movement computation across cores gives real speedup (benchmark this as the "sequential vs. concurrent" test)
-- **Data race on ball list**: if the view reads while the loop writes, you get rendering glitches — solve with a **snapshot copy** of the ball list for rendering, taken inside a `synchronized` block
-
----
-
-## Suggested Package Structure
+### Shadow JAR
+To create a runnable JAR with all dependencies:
+```bash
+./gradlew shadowJar
 ```
-it.unibo.poool/
-├── model/
-│   ├── Ball.java
-│   ├── GameModel.java        ← the monitor
-│   └── GameStatus.java
-├── physics/
-│   └── PhysicsEngine.java
-├── view/
-│   └── GameView.java
+
+The JAR file `assignment-1-all.jar` will be in `build/libs/`.
+
+## Run Instructions
+
+### Using Gradle
+- **Multithreaded version** (default):
+  ```bash
+  ./gradlew run
+  ```
+- **Task-based version**:
+  ```bash
+  ./gradlew run --args="taskbased"
+  ```
+
+### Using JAR
+- **Multithreaded version**:
+  ```bash
+  java -jar build/libs/assignment-1-all.jar
+  ```
+- **Task-based version**:
+  ```bash
+  java -jar build/libs/assignment-1-all.jar taskbased
+  ```
+
+The window title will display "Pool - MULTITHREAD" or "Pool - TASKBASED" to indicate the active mode.
+
+## Controls
+
+- **Arrow Keys**: Apply impulse to human ball (up, down, left, right).
+- **Mouse**: Click and drag to aim and shoot with power based on hold time.
+- **Gameplay**: Players alternate turns when all balls stop moving.
+
+## Testing
+
+Run unit tests:
+```bash
+./gradlew test
+```
+
+Tests cover ball physics, collisions, model synchronization, and utility classes.
+
+## Package Structure
+
+```
+src/main/java/it/unibo/sampleapp/
+├── Main.java                    # Application entry point
 ├── controller/
-│   ├── InputController.java
-│   └── GameController.java
-├── concurrent/
-│   ├── v1/
-│   │   ├── GameLoopThread.java
-│   │   └── BotThread.java
-│   └── v2/
-│       ├── GameLoopTask.java
-│       └── MoveTask.java
-└── Main.java
+│   ├── Controller.java          # Controller interface
+│   └── ControllerImpl.java      # Controller implementation
+├── model/
+│   ├── GameModel.java           # Model interface
+│   ├── GameModelImpl.java       # Model implementation (monitor)
+│   ├── ball/                    # Ball-related classes
+│   ├── hole/                    # Hole detection
+│   ├── snapshot/                # Immutable snapshots
+│   └── status/                  # Game status enum
+├── physics/
+│   └── PhysicsEngine.java       # Physics simulation
+├── util/
+│   └── Vector2D.java            # 2D vector utilities
+├── view/
+│   ├── View.java                # View interface
+│   ├── ViewImpl.java            # Swing view implementation
+│   └── board/                   # Board rendering
+└── concurrent/
+    ├── multithread/             # Thread-based concurrency
+    │   ├── GameLoopThread.java
+    │   └── BotThread.java
+    └── taskbased/               # Executor-based concurrency
+        ├── GameLoopTask.java
+        └── BotTask.java
 ```
-___
 
-## Key Rule for the Model Layer
-The dependency arrow must always point inward:
-```
-view → controller → model ← physics
-                        ↑
-                    concurrent
-```
-This guarantees that the model can always be tested headlessly, which also makes JPF verification significantly easier since you can run the model checker on pure model code without Swing on the classpath.
+## Key Design Decisions
 
----
-## Life Cycle of Each Frame
-```
-GameLoopThread                    Swing EDT (view)
-│                                │
-│  synchronized {                │
-│    physicsEngine.step(...)     │
-│    checkHoles(...)             │
-│    updateScores(...)           │
-│  }                             │
-│                                │
-│  synchronized {                │
-│    snapshot = getSnapshot()  ──┼──► GameSnapshot (immutable)
-│  }  ← lock released            │         │
-│                                │    view.render(snapshot)
-│  view.repaint()  ─────────────►│         │ paints freely,
-│                                │         │ no lock held
-```
-The lock is held for two very short windows: the physics step, and the snapshot copy. The view never competes with the physics loop during painting.
-​
+- **Monitor Pattern**: `GameModel` uses `synchronized` methods and `wait()`/`notifyAll()` for thread coordination.
+- **Snapshot Rendering**: View reads immutable copies of game state to prevent data races.
+- **Asynchronous Input**: User input is handled on Swing EDT, decoupled from physics loop.
+- **Event-Driven Bot**: Bot waits for balls to stop before acting, ensuring fair play.
 
-___
+## Performance Notes
 
-## Petri Net Sketch (for Report)
+- Physics loop targets 60 FPS with sleep-based timing.
+- Task-based version uses `ScheduledExecutorService` for consistent timing.
+- Ball movement and friction are computed sequentially; collisions are resolved in a critical section.
 
-For the report, model each ball with two places: **`Moving`** and **`Still`**.
+## License
 
-- Transitions: `kick` (Still → Moving), `friction_stop` (Moving → Still), `hole_entry` (Moving → consumed)
-- The game-level net has a **`Playing`** place that transitions to **`GameOver`** when the ball-count place empties or when a player ball enters a hole
-
----
-
-## Implementation Tips
-
-- Use `CopyOnWriteArrayList` or a synchronized snapshot for the view to read without blocking the physics loop
-- The bot "AI" can simply be a thread sleeping for a random interval then applying a random `(dx, dy)` impulse to its ball — the assignment does not require smart behavior
-- For JPF verification, focus on the monitor invariants of `GameModel` (no two threads updating scores simultaneously) — that's a realistic and manageable scope for model checking
-- For performance tests, compare sequential step time vs. parallel step time as the number of balls scales from 100 to 10,000
-
----
-
-## Quick Tips
-- Use CopyOnWriteArrayList or a synchronized snapshot for the view to read without blocking the physics loop
-
-- The bot "AI" can simply be a thread sleeping for a random interval then applying a random (dx, dy) impulse to its ball — the assignment says it doesn't need to be smart
-
-- For JPF verification, focus on the monitor invariants of GameModel (no two threads updating scores simultaneously) — that's a realistic scope for model checking
+This project is part of the PCD course assignment at University of Bologna.
