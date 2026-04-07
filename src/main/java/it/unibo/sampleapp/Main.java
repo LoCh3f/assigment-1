@@ -39,20 +39,15 @@ public final class Main {
                 ? ConcurrencyMode.TASKBASED
                 : ConcurrencyMode.MULTITHREAD;
 
-        // 1. Build model
         final GameModel model = new GameModelImpl(BOARD_W, BOARD_H, NUM_SMALL_BALLS);
 
-        // 2. Build controller (no view yet)
         final ControllerImpl controller = new ControllerImpl(model, mode);
 
-        // 3. Build view (needs observer = controller)
         final View view = new ViewImpl(BOARD_W, BOARD_H, controller);
 
-        // 4. Complete the wiring
         controller.setView(view);
         view.setConcurrencyMode(mode.name());
 
-        // 5. Show window and start
         view.show();
         controller.start();
     }
