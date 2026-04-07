@@ -196,17 +196,20 @@ public final class BoardPanel extends JPanel {
         );
 
         // Draw turn indicator at the top
-        drawTurnIndicator(g2, fm);
+        drawTurnIndicator(g2, fm, snap);
     }
 
     /**
-     * Draws a turn indicator showing asynchronous play mode.
+     * Draws a turn indicator showing whose turn it is.
      *
      * @param g2 the graphics context
      * @param fm the font metrics
      */
-    private void drawTurnIndicator(final Graphics2D g2, final FontMetrics fm) {
-        final String turnText = "ASYNC PLAY - Move when balls stop";
+    private void drawTurnIndicator(final Graphics2D g2, final FontMetrics fm, final GameSnapshot snap) {
+        final String turnText = switch (snap.currentTurn()) {
+            case HUMAN -> "Human's turn";
+            case BOT -> "Bot's turn";
+        };
         final int textWidth = fm.stringWidth(turnText);
         final int textHeight = fm.getHeight();
 
@@ -217,7 +220,10 @@ public final class BoardPanel extends JPanel {
         final int turnY = TURN_BOX_Y;
 
         // Draw semi-transparent background
-        final Color turnBgColor = new Color(100, 100, 100, 180); // Gray for async mode
+        final Color turnBgColor = switch (snap.currentTurn()) {
+            case HUMAN -> COLOR_TURN_HUMAN;
+            case BOT -> COLOR_TURN_BOT;
+        };
 
         g2.setColor(turnBgColor);
         g2.fillRoundRect(turnX, turnY, turnBoxW, turnBoxH, CORNER_RADIUS, CORNER_RADIUS);

@@ -116,6 +116,9 @@ public final class GameModelImpl implements GameModel {
      */
     @Override
     public synchronized void applyImpulseToHuman(final Vector2D direction) {
+        if (currentTurn != Turn.HUMAN) {
+            return;
+        }
         // Asynchronous play: allow human to move whenever balls are stopped
         try {
             while (status == GameStatus.PLAYING && !allBallsStopped()) {
@@ -132,10 +135,14 @@ public final class GameModelImpl implements GameModel {
         humanBall.setVelocity(
                 humanBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
         );
+        currentTurn = Turn.BOT;
     }
 
     @Override
     public synchronized void applyImpulseToBot(final Vector2D direction) {
+        if (currentTurn != Turn.BOT) {
+            return;
+        }
         // Asynchronous play: allow bot to move whenever balls are stopped
         try {
             while (status == GameStatus.PLAYING && !allBallsStopped()) {
@@ -152,6 +159,7 @@ public final class GameModelImpl implements GameModel {
         botBall.setVelocity(
                 botBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
         );
+        currentTurn = Turn.HUMAN;
     }
 
     /**

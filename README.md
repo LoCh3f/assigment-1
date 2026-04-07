@@ -21,28 +21,29 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 ┌─────────────────────────────────────────────┐
 │                  View (Swing/AWT)           │  ← Passive renderer
 │                                             │
-│  ← reads snapshot                           │
+│  ← reads snapshot                          │
 └─────────────────────┬───────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────┐
-│              Controller                     │  ← Handles input, coordinates
+│              Controller                      │  ← Handles input, coordinates
 │                                             │
 │  updates →                                  │
 └─────────────────────┬───────────────────────┘
                       │
-┌─────────────────────▼────────────────────────┐
+┌─────────────────────▼───────────────────────┐
 │              GameModel (Monitor)             │  ← Shared mutable state
 │  - List<Ball> balls                          │
 │  - int humanScore, botScore                  │
 │  - GameStatus status                         │
+│  - Turn currentTurn                          │
 │  + synchronized getters/setters              │
 └───┬───────────────┬───────────────┬──────────┘
-    │               │               │
-┌───▼────┐  ┌───────▼──────┐  ┌─────▼─────────┐
+│               │               │
+┌───▼────┐  ┌───────▼──────┐  ┌────▼──────────┐
 │Physics │  │  BotAgent    │  │ Input Relay   │
 │Loop    │  │  (async)     │  │ (Swing EDT)   │
 │Thread/ │  │  Thread/Task │  │ (Event-driven)│
-│Task    │  │              │  │               │
+│Task    │  │              │  │                │
 └────────┘  └──────────────┘  └───────────────┘
 ```
 
@@ -55,7 +56,7 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 ### Key Components
 
 - **Model**: `GameModel` acts as a monitor with synchronized methods for thread-safe access to game state.
-- **View**: Swing-based GUI displaying the board, balls, scores, and FPS. Uses immutable snapshots to avoid blocking the physics loop.
+- **View**: Swing-based GUI displaying the board, balls, scores, FPS, and current turn. Uses immutable snapshots to avoid blocking the physics loop.
 - **Controller**: Handles user input and coordinates between model and view.
 - **Physics**: Simulates ball movement, collisions, friction, and hole detection.
 - **Concurrency**: Two implementations for the physics loop and bot AI.
