@@ -97,6 +97,7 @@ public final class GameModelImpl implements GameModel {
         this.botScore = 0;
         this.status = GameStatus.PLAYING;
     }
+
     /**
      * {@inheritDoc}
      */
@@ -196,6 +197,7 @@ public final class GameModelImpl implements GameModel {
             wait();  // releases lock and sleeps
         }
     }
+
     /**
      * Handles balls that fell into holes this step.
      * Player balls → immediate game over.
@@ -219,13 +221,13 @@ public final class GameModelImpl implements GameModel {
                 case SMALL -> {
                     if (currentTurn == Turn.HUMAN) {
                         humanScore++;
-                        if (humanScore > (balls.size()-2)/2) {
+                        if (humanScore > (balls.size() - 2) / 2) {
                             status = GameStatus.HUMAN_WINS;
                         }
                     }
                     if (currentTurn == Turn.BOT) {
                         botScore++;
-                        if (botScore > (balls.size()-2)/2 ) {
+                        if (botScore > (balls.size() - 2) / 2) {
                             status = GameStatus.HUMAN_WINS;
                         }
                     }

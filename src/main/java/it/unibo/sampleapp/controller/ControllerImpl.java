@@ -121,7 +121,14 @@ public final class ControllerImpl implements Controller {
         }
     }
 
+    /**
+     * Returns the current frames per second from the game loop thread.
+     *
+     * @return the current FPS value, or 0 if game loop is not running
+     */
+    @Override
     public int getCurrentFps() {
         return gameLoopThread != null ? gameLoopThread.getCurrentFps() : 0;
     }
 }
+

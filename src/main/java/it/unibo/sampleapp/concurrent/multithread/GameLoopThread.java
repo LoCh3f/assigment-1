@@ -19,6 +19,9 @@ public final class GameLoopThread extends Thread {
 
     private final GameModel model;
     private final View view;
+    private long framesThisSecond;
+    private long lastFpsTimeMs;
+    private volatile int currentFps;
 
     /**
      * Constructs a new GameLoopThread with the given model and view.
@@ -30,6 +33,9 @@ public final class GameLoopThread extends Thread {
         super("game-loop");
         this.model = model;
         this.view = view;
+        this.framesThisSecond = 0;
+        this.lastFpsTimeMs = System.currentTimeMillis();
+        this.currentFps = 0;
         setDaemon(true);   // dies when main thread dies
     }
 
@@ -47,13 +53,12 @@ public final class GameLoopThread extends Thread {
             // 2. Snapshot + push to view (lock held only during snapshot copy)
             view.update(model.getSnapshot());
             framesThisSecond++;
-            long now = System.currentTimeMillis();
+            final long now = System.currentTimeMillis();
             if (now - lastFpsTimeMs >= 1000) {
                 currentFps = (int) framesThisSecond;
                 framesThisSecond = 0;
                 lastFpsTimeMs = now;
             }
-
 
             // 3. Sleep for the remainder of the tick budget
             final long elapsed = System.currentTimeMillis() - startMs;
@@ -75,9 +80,12 @@ public final class GameLoopThread extends Thread {
     public void stopLoop() {
         interrupt();
     }
-    private long framesThisSecond = 0;
-    private long lastFpsTimeMs    = System.currentTimeMillis();
-    private volatile int currentFps = 0;
+
+    /**
+     * Returns the current frames per second.
+     *
+     * @return the current FPS value
+     */
     public int getCurrentFps() {
         return currentFps;
     }

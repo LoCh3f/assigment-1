@@ -24,5 +24,10 @@ public interface Controller {
      */
     void onGameStartRequested();
 
+    /**
+     * Returns the current frames per second.
+     *
+     * @return the current FPS value
+     */
     int getCurrentFps();
 }
