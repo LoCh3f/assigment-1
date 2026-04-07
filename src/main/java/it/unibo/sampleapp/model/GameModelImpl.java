@@ -299,7 +299,6 @@ public final class GameModelImpl implements GameModel {
 
     private boolean allBallsStopped() {
         return balls.stream()
-                .filter(b -> b.getType() == Ball.Type.BOT || b.getType() == Ball.Type.HUMAN)
                 .allMatch(b -> b.getVelocity().magnitude() <= STOP_THRESHOLD);
     }
 }
