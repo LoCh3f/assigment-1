@@ -185,20 +185,20 @@ public final class BoardPanel extends JPanel {
         );
 
         // Draw turn indicator at the top
-        drawTurnIndicator(g2, fm);
+        drawTurnIndicator(g2, snap, fm);
     }
 
     /**
      * Draws a turn indicator showing whose turn it is.
      *
      * @param g2 the graphics context
+     * @param snap the game snapshot containing turn information
      * @param fm the font metrics
      */
-    private void drawTurnIndicator(final Graphics2D g2, final FontMetrics fm) {
-        // Find whose turn it is by checking who can move
-        final boolean isHumanTurn = true;
-        // For now, we'll assume it's human's turn if they have the lower index in turns
-        // In a real implementation, you'd pass this from the model
+    private void drawTurnIndicator(final Graphics2D g2, final GameSnapshot snap,
+            final FontMetrics fm) {
+        // Get the actual current turn from the snapshot
+        final boolean isHumanTurn = snap.currentTurn() == GameSnapshot.Turn.HUMAN;
 
         final String turnText = isHumanTurn ? "YOUR TURN (Use arrow keys)" : "BOT IS PLAYING...";
         final int textWidth = fm.stringWidth(turnText);

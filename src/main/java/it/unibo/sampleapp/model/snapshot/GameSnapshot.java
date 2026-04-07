@@ -16,6 +16,7 @@ import java.util.List;
  * @param holes active.
  * @param width of the board.
  * @param height of the board.
+ * @param currentTurn whose turn it is (HUMAN or BOT).
  */
 public record GameSnapshot(
         List<BallSnapshot> balls,    // all active balls
@@ -24,8 +25,14 @@ public record GameSnapshot(
         GameStatus status,
         List<Hole> holes,            // static, but view needs them
         int width,
-        int height
+        int height,
+        Turn currentTurn             // whose turn it is
 ) {
+    /**
+     * Turn indicator enum.
+     */
+    public enum Turn { HUMAN, BOT }
+
     /**
      * Compact constructor that creates defensive copies of mutable lists.
      */

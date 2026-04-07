@@ -172,9 +172,13 @@ public final class GameModelImpl implements GameModel {
         final List<BallSnapshot> snapshots = balls.stream()
                 .map(b -> new BallSnapshot(b.getPosition(), b.getRadius(), b.getType()))
                 .toList();
+        // Convert internal Turn enum to snapshot Turn enum
+        final GameSnapshot.Turn snapshotTurn = (currentTurn == Turn.HUMAN)
+                ? GameSnapshot.Turn.HUMAN
+                : GameSnapshot.Turn.BOT;
         return new GameSnapshot(snapshots,
                 humanScore, botScore,
-                status, List.copyOf(holes), boardWidth, boardHeight);
+                status, List.copyOf(holes), boardWidth, boardHeight, snapshotTurn);
     }
 
     /**
