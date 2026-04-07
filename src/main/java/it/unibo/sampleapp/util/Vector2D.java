@@ -94,4 +94,14 @@ public record Vector2D(double x, double y) {
     public Vector2D subtract(final Vector2D other) {
         return new Vector2D(x - other.x, y - other.y);
     }
+
+    /**
+     * Computes the distance between this point and another point.
+     *
+     * @param other the other point
+     * @return the Euclidean distance between the two points
+     */
+    public double distance(final Vector2D other) {
+        return subtract(other).magnitude();
+    }
 }

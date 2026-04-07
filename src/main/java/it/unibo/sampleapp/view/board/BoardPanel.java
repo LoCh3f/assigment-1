@@ -28,13 +28,17 @@ public final class BoardPanel extends JPanel {
     private static final Color COLOR_SUBTEXT = new Color(200, 200, 200);
     private static final Color COLOR_HUD_BACKGROUND = new Color(255, 255, 255, 200);
     private static final Color COLOR_BLACK_TEXT = Color.BLACK;
+    private static final Color COLOR_TURN_HUMAN = new Color(70, 130, 230, 180);
+    private static final Color COLOR_TURN_BOT = new Color(220, 60, 60, 180);
     private static final String FONT_NAME = "Monospaced";
     private static final int FONT_SIZE_HUD = 18;
     private static final int FONT_SIZE_MESSAGE = 48;
     private static final int FONT_SIZE_SUBLABEL = 16;
     private static final int PADDING_HUD = 12;
+    private static final int PADDING_TURN = 10;
     private static final int CORNER_RADIUS = 8;
     private static final int MESSAGE_OFFSET = 36;
+    private static final int TURN_BOX_Y = 12;
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -158,6 +162,7 @@ public final class BoardPanel extends JPanel {
         g2.drawString(botLabel, boardWidth - botW - 8 + PADDING_HUD / 2,
                 boardHeight - 8 - PADDING_HUD / 2 + 2);
 
+        // Draw FPS indicator
         final String fpsLabel = "FPS: " + currentFps;
         final int textWidth = fm.stringWidth(fpsLabel);
         final int textHeight = fm.getHeight();
@@ -178,6 +183,42 @@ public final class BoardPanel extends JPanel {
                 x + (boxWidth - textWidth) / 2,
                 y + (boxHeight - textHeight) / 2 + fm.getAscent()
         );
+
+        // Draw turn indicator at the top
+        drawTurnIndicator(g2, fm);
+    }
+
+    /**
+     * Draws a turn indicator showing whose turn it is.
+     *
+     * @param g2 the graphics context
+     * @param fm the font metrics
+     */
+    private void drawTurnIndicator(final Graphics2D g2, final FontMetrics fm) {
+        // Find whose turn it is by checking who can move
+        final boolean isHumanTurn = true;
+        // For now, we'll assume it's human's turn if they have the lower index in turns
+        // In a real implementation, you'd pass this from the model
+
+        final String turnText = isHumanTurn ? "YOUR TURN (Use arrow keys)" : "BOT IS PLAYING...";
+        final int textWidth = fm.stringWidth(turnText);
+        final int textHeight = fm.getHeight();
+
+        final int turnBoxW = textWidth + PADDING_TURN * 2;
+        final int turnBoxH = textHeight + PADDING_TURN;
+
+        final int turnX = (boardWidth - turnBoxW) / 2;
+        final int turnY = TURN_BOX_Y;
+
+        // Draw semi-transparent background
+        final Color turnBgColor = isHumanTurn ? COLOR_TURN_HUMAN : COLOR_TURN_BOT;
+
+        g2.setColor(turnBgColor);
+        g2.fillRoundRect(turnX, turnY, turnBoxW, turnBoxH, CORNER_RADIUS, CORNER_RADIUS);
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(turnText, turnX + PADDING_TURN,
+                turnY + PADDING_TURN + fm.getAscent());
     }
 
     private void drawGameOverOverlay(final Graphics2D g2,
