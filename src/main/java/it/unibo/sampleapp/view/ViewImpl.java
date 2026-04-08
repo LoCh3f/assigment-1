@@ -62,7 +62,7 @@ public final class ViewImpl extends JFrame implements View {
         boardPanel.setBackground(COLOR_BOARD);
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(true);
         getContentPane().add(boardPanel);
         pack();
         setLocationRelativeTo(null);

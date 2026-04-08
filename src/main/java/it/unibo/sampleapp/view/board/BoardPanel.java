@@ -126,9 +126,10 @@ public final class BoardPanel extends JPanel {
     private void drawHoles(final Graphics2D g2, final GameSnapshot snap) {
         g2.setColor(COLOR_HOLE);
         for (final Hole hole : snap.holes()) {
-            final int x = (int) (hole.getPosition2D().x() - hole.getRadius());
-            final int y = (int) (hole.getPosition2D().y() - hole.getRadius());
-            final int d = (int) (hole.getRadius() * 2);
+            final int radius = toScreenLength(hole.getRadius());
+            final int x = toScreenX(hole.getPosition2D().x()) - radius;
+            final int y = toScreenY(hole.getPosition2D().y()) - radius;
+            final int d = radius * 2;
             g2.fillOval(x, y, d, d);
         }
     }
@@ -140,9 +141,10 @@ public final class BoardPanel extends JPanel {
                 case HUMAN -> COLOR_HUMAN_BALL;
                 case BOT -> COLOR_BOT_BALL;
             };
-            final int x = (int) (ball.position().x() - ball.radius());
-            final int y = (int) (ball.position().y() - ball.radius());
-            final int d = (int) (ball.radius() * 2);
+            final int radius = toScreenLength(ball.radius());
+            final int x = toScreenX(ball.position().x()) - radius;
+            final int y = toScreenY(ball.position().y()) - radius;
+            final int d = radius * 2;
 
             g2.setColor(color);
             g2.fillOval(x, y, d, d);
@@ -153,6 +155,8 @@ public final class BoardPanel extends JPanel {
     }
 
     private void drawHUD(final Graphics2D g2, final GameSnapshot snap) {
+        final int panelWidth = getWidth();
+        final int panelHeight = getHeight();
         g2.setFont(new Font(FONT_NAME, Font.BOLD, FONT_SIZE_HUD));
         final FontMetrics fm = g2.getFontMetrics();
 
@@ -162,19 +166,19 @@ public final class BoardPanel extends JPanel {
         final int hudH = fm.getHeight() + PADDING_HUD;
 
         g2.setColor(COLOR_SCORE_HUD);
-        g2.fillRoundRect(8, boardHeight - hudH - 8,
+        g2.fillRoundRect(8, panelHeight - hudH - 8,
                 fm.stringWidth(humanLabel) + PADDING_HUD, hudH, CORNER_RADIUS, CORNER_RADIUS);
         g2.setColor(COLOR_HUMAN_BALL);
         g2.drawString(humanLabel, 8 + PADDING_HUD / 2,
-                boardHeight - 8 - PADDING_HUD / 2 + 2);
+                panelHeight - 8 - PADDING_HUD / 2 + 2);
 
         final int botW = fm.stringWidth(botLabel) + PADDING_HUD;
         g2.setColor(COLOR_SCORE_HUD);
-        g2.fillRoundRect(boardWidth - botW - 8, boardHeight - hudH - 8,
+        g2.fillRoundRect(panelWidth - botW - 8, panelHeight - hudH - 8,
                 botW, hudH, CORNER_RADIUS, CORNER_RADIUS);
         g2.setColor(COLOR_BOT_BALL);
-        g2.drawString(botLabel, boardWidth - botW - 8 + PADDING_HUD / 2,
-                boardHeight - 8 - PADDING_HUD / 2 + 2);
+        g2.drawString(botLabel, panelWidth - botW - 8 + PADDING_HUD / 2,
+                panelHeight - 8 - PADDING_HUD / 2 + 2);
 
         // Draw FPS indicator
         final String fpsLabel = "FPS: " + currentFps;
@@ -185,8 +189,8 @@ public final class BoardPanel extends JPanel {
         final int boxWidth = textWidth + padding;
         final int boxHeight = textHeight + padding;
 
-        final int x = (boardWidth - boxWidth) / 2;
-        final int y = boardHeight - boxHeight - 8;
+        final int x = (panelWidth - boxWidth) / 2;
+        final int y = panelHeight - boxHeight - 8;
 
         g2.setColor(COLOR_HUD_BACKGROUND);
         g2.fillRoundRect(x, y, boxWidth, boxHeight, 8, 8);
@@ -202,8 +206,10 @@ public final class BoardPanel extends JPanel {
 
     private void drawGameOverOverlay(final Graphics2D g2,
                                      final String message) {
+        final int panelWidth = getWidth();
+        final int panelHeight = getHeight();
         g2.setColor(COLOR_OVERLAY);
-        g2.fillRect(0, 0, boardWidth, boardHeight);
+        g2.fillRect(0, 0, panelWidth, panelHeight);
 
         g2.setFont(new Font(FONT_NAME, Font.BOLD, FONT_SIZE_MESSAGE));
         FontMetrics fm = g2.getFontMetrics();
@@ -212,16 +218,16 @@ public final class BoardPanel extends JPanel {
 
         g2.setColor(Color.WHITE);
         g2.drawString(message,
-                (boardWidth - msgW) / 2,
-                (boardHeight + msgH) / 2);
+                (panelWidth - msgW) / 2,
+                (panelHeight + msgH) / 2);
 
         g2.setFont(new Font(FONT_NAME, Font.PLAIN, FONT_SIZE_SUBLABEL));
         final String sub = "Close the window to exit.";
         fm = g2.getFontMetrics();
         g2.setColor(COLOR_SUBTEXT);
         g2.drawString(sub,
-                (boardWidth - fm.stringWidth(sub)) / 2,
-                (boardHeight + msgH) / 2 + MESSAGE_OFFSET);
+                (panelWidth - fm.stringWidth(sub)) / 2,
+                (panelHeight + msgH) / 2 + MESSAGE_OFFSET);
     }
 
     /**
@@ -270,8 +276,8 @@ public final class BoardPanel extends JPanel {
         final double scaledDy = dy / length * AIMING_LINE_SCALE;
 
         // Draw the aiming line from the human ball in the direction of the aim
-        final double ballX = humanBall.position().x();
-        final double ballY = humanBall.position().y();
+        final double ballX = toScreenX(humanBall.position().x());
+        final double ballY = toScreenY(humanBall.position().y());
         g2.setColor(Color.RED);
         g2.drawLine(
                 (int) ballX,
@@ -309,5 +315,19 @@ public final class BoardPanel extends JPanel {
         g2.setColor(Color.RED);
         g2.drawLine((int) x2, (int) y2, (int) arrowX1, (int) arrowY1);
         g2.drawLine((int) x2, (int) y2, (int) arrowX2, (int) arrowY2);
+    }
+
+    private int toScreenX(final double boardX) {
+        return (int) Math.round(boardX * getWidth() / boardWidth);
+    }
+
+    private int toScreenY(final double boardY) {
+        return (int) Math.round(boardY * getHeight() / boardHeight);
+    }
+
+    private int toScreenLength(final double boardLength) {
+        final double xScale = getWidth() / (double) boardWidth;
+        final double yScale = getHeight() / (double) boardHeight;
+        return (int) Math.max(1, Math.round(boardLength * Math.min(xScale, yScale)));
     }
 }
