@@ -15,35 +15,34 @@ import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.io.Serial;
 
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.AIMING_LINE_SCALE;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_AIMING_CIRCLE_ALPHA;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_AIMING_CIRCLE_BLUE;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_AIMING_CIRCLE_GREEN;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_AIMING_CIRCLE_RED;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_BLACK_TEXT;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_BOT_BALL;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_HOLE;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_HUD_BACKGROUND;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_HUMAN_BALL;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_OVERLAY;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_SCORE_HUD;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_SMALL_BALL;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.COLOR_SUBTEXT;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.CORNER_RADIUS;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.FONT_NAME;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.FONT_SIZE_HUD;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.FONT_SIZE_MESSAGE;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.FONT_SIZE_SUBLABEL;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.MESSAGE_OFFSET;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.PADDING_HUD;
+import static it.unibo.sampleapp.view.costants.BoardPanelConstants.POWER_INDICATOR_SCALE;
+
 /**
  * The panel that renders the game board.
  * Displays balls, holes, scores, FPS, and game-over messages.
  */
 public final class BoardPanel extends JPanel {
-
-    private static final Color COLOR_SMALL_BALL = new Color(220, 220, 220);
-    private static final Color COLOR_HUMAN_BALL = new Color(70, 130, 230);
-    private static final Color COLOR_BOT_BALL = new Color(220, 60, 60);
-    private static final Color COLOR_HOLE = new Color(10, 10, 10);
-    private static final Color COLOR_SCORE_HUD = new Color(255, 255, 255, 200);
-    private static final Color COLOR_OVERLAY = new Color(0, 0, 0, 160);
-    private static final Color COLOR_SUBTEXT = new Color(200, 200, 200);
-    private static final Color COLOR_HUD_BACKGROUND = new Color(255, 255, 255, 200);
-    private static final Color COLOR_BLACK_TEXT = Color.BLACK;
-    private static final String FONT_NAME = "Monospaced";
-    private static final int FONT_SIZE_HUD = 18;
-    private static final int FONT_SIZE_MESSAGE = 48;
-    private static final int FONT_SIZE_SUBLABEL = 16;
-    private static final int PADDING_HUD = 12;
-    private static final int CORNER_RADIUS = 8;
-    private static final int MESSAGE_OFFSET = 36;
-    private static final int COLOR_AIMING_CIRCLE_RED = 255;
-    private static final int COLOR_AIMING_CIRCLE_GREEN = 255;
-    private static final int COLOR_AIMING_CIRCLE_BLUE = 0;
-    private static final int COLOR_AIMING_CIRCLE_ALPHA = 128;
-    private static final double AIMING_LINE_SCALE = 100.0;
-    private static final double POWER_INDICATOR_SCALE = 15.0;
-
     @Serial
     private static final long serialVersionUID = 1L;
 
