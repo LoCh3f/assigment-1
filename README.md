@@ -18,40 +18,27 @@ Poool is a simplified pool game with the following elements:
 
 The application follows an **MVC (Model-View-Controller)** pattern with dedicated active components for concurrency:
 
-```
-┌─────────────────────────────────────────────┐
-│                  View (Swing/AWT)           │  ← Passive renderer
-│                                             │
-│  ← reads snapshot                          │
-└─────────────────────┬───────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────┐
-│              Controller                      │  ← Handles input, coordinates
-│                                             │
-│  updates →                                  │
-└─────────────────────┬───────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────┐
-│              GameModel (Monitor)             │  ← Shared mutable state
-│  - List<Ball> balls                          │
-│  - int humanScore, botScore                  │
-│  - GameStatus status                         │
-│  + synchronized getters/setters              │
-└───┬───────────────┬───────────────┬──────────┘
-│               │               │
-┌───▼────┐  ┌───────▼──────┐  ┌────▼──────────┐
-│Physics │  │  BotAgent    │  │ Input Relay   │
-│Loop    │  │  (async)     │  │ (Swing EDT)   │
-│Thread/ │  │  Thread/Task │  │ (Event-driven)│
-│Task    │  │              │  │                │
-└────────┘  └──────────────┘  └───────────────┘
+### MVC Dependency UML
+
+```text
+ +----------+                                +------------+                              +-------+
+ |   View   | -- onDirectionInput/onShoot -->| Controller | -- applyImpulseToHuman -->  | Model |
+ +----------+                                +------------+                              +-------+
+      ^                                              |                                        ^
+      |                                              | update(GameSnapshot)                   |
+      +--------------------------- Controller --------------------------- getSnapshot() ------+
+
+ Concrete types:
+ - View = ViewImpl
+ - Controller = ControllerImpl
+ - Model = GameModelImpl
 ```
 
 ### MVC Flow
 - **Model**: `GameModel` holds game state and acts as a monitor.
-- **View**: Displays game state via immutable snapshots, receives updates from Controller.
-- **Controller**: Processes user input, triggers model updates, and pushes view updates.
-- **Active Components**: Physics loop and bot AI run asynchronously, updating the model and triggering view refreshes.
+- **View**: Renders immutable snapshots received from the controller.
+- **Controller**: Processes user input, applies model commands, retrieves snapshots from the model, and passes them to the view.
+- **Active Components**: `GameLoopThread`/`GameLoopTask` still drive the frame cadence and trigger snapshot/render updates; bot components update the model asynchronously.
 
 ### Key Components
 
@@ -140,7 +127,7 @@ src/main/java/it/unibo/sampleapp/
 ├── Main.java                    # Application entry point
 ├── controller/
 │   ├── Controller.java          # Controller interface
-│   └── ControllerImpl.java      # Controller implementation
+│   ├── ControllerImpl.java      # Controller implementation
 │   └── concurrent/
 │       ├── multithread/         # Thread-based concurrency
 │       │   ├── BotThread.java   # Bot AI thread
