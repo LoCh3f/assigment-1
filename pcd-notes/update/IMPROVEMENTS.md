@@ -63,28 +63,6 @@ return randomDirection()
 
 ---
 
-## 2. Human Player Experience Improvements
-
-### 2.1 Enhanced HUD (Heads-Up Display)
-
-#### New Turn Indicator
-**Visual Feedback** at the top of the board:
-- **When it's your turn**: 
-  - Blue box with text "YOUR TURN (Use arrow keys)"
-  - Color matches human ball color
-  - Shows available controls
-  
-- **When bot is playing**:
-  - Red box with text "BOT IS PLAYING..."
-  - Color matches bot ball color
-  - Clear visual distinction
-
-**Benefits**:
-✓ Immediate visual feedback about game state  
-✓ New players understand whose turn it is  
-✓ Color-coded for quick recognition  
-✓ Reduces confusion about game flow
-
 #### Updated Score Display
 - Maintains score boxes at bottom:
   - "You: [score]" on the left (blue)
