@@ -1,4 +1,6 @@
-package it.unibo.sampleapp.model;
+package it.unibo.sampleapp.model.costants;
+
+import it.unibo.sampleapp.model.GameModel;
 
 /**
  * Constants used by {@link GameModel}.

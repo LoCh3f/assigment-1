@@ -13,15 +13,15 @@ import it.unibo.sampleapp.util.Vector2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import static it.unibo.sampleapp.model.GameModelConstants.BOT_BALL_X_RATIO;
-import static it.unibo.sampleapp.model.GameModelConstants.BOT_BALL_Y_RATIO;
-import static it.unibo.sampleapp.model.GameModelConstants.HOLE_RADIUS;
-import static it.unibo.sampleapp.model.GameModelConstants.HUMAN_BALL_X_RATIO;
-import static it.unibo.sampleapp.model.GameModelConstants.HUMAN_BALL_Y_RATIO;
-import static it.unibo.sampleapp.model.GameModelConstants.IMPULSE_STRENGTH;
-import static it.unibo.sampleapp.model.GameModelConstants.PLAYER_BALL_RADIUS;
-import static it.unibo.sampleapp.model.GameModelConstants.SMALL_BALL_RADIUS;
-import static it.unibo.sampleapp.model.GameModelConstants.TOP_HALF_RATIO;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.BOT_BALL_X_RATIO;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.BOT_BALL_Y_RATIO;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.HOLE_RADIUS;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.HUMAN_BALL_X_RATIO;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.HUMAN_BALL_Y_RATIO;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.IMPULSE_STRENGTH;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.PLAYER_BALL_RADIUS;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.SMALL_BALL_RADIUS;
+import static it.unibo.sampleapp.model.costants.GameModelConstants.TOP_HALF_RATIO;
 
 /**
  * The game monitor. Single point of truth for all mutable game state.
