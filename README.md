@@ -33,7 +33,7 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 
 ```text
  +-----------------------------+          +------------------------------+          +--------------------------------+
- | <<interface>> View          |          | <<interface>> Controller     |          | <<interface>> GameModel        |
+ | <<interface>> View          |          | <<interface>> Controller     |          | <<interface>> Model            |
  +-----------------------------+          +------------------------------+          +--------------------------------+
  | +show()                     |          | +setView(View)               |          | +applyPhysicsStep(double)      |
  | +update(GameSnapshot)       |          | +onDirectionInput(Vector2D)  |          | +applyImpulseToHuman(Vector2D) |
@@ -44,9 +44,9 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
                                           +------------------------------+
 
  +-----------------------------+          +------------------------------+          +--------------------------------+
- | ViewImpl                     |         | ControllerImpl                |         | GameModelImpl                  |
+ | ViewImpl                     |         | ControllerImpl                |         | GameModel                      |
  +-----------------------------+          +------------------------------+          +--------------------------------+
- | - controller: Controller     |         | - model: GameModel            |         | - physicsEngine: PhysicsEngine |
+ | - controller: Controller     |         | - model: Model                |         | - physicsEngine: PhysicsEngine |
  | +update(GameSnapshot)        |         | - view: View                  |         | +applyPhysicsStep(double)      |
  | +displayGameOver(GameStatus) |         | +setView(View)                |         | +applyImpulseToHuman(Vector2D) |
  | +show()                      |         | +onDirectionInput(Vector2D)   |         | +applyImpulseToBot(Vector2D)   |
@@ -57,16 +57,16 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
  Relationships:
  - ViewImpl ..|> View
  - ControllerImpl ..|> Controller
- - GameModelImpl ..|> GameModel
+ - GameModel ..|> Model
  - ViewImpl --> ControllerImpl : onDirectionInput/onShoot
- - ControllerImpl --> GameModelImpl : applyImpulseToHuman/getSnapshot
+ - ControllerImpl --> GameModel : applyImpulseToHuman/getSnapshot
  - ControllerImpl --> ViewImpl : update(snapshot)/displayGameOver
- - Main --> ControllerImpl, ViewImpl, GameModelImpl : wiring
+ - Main --> ControllerImpl, ViewImpl, GameModel : wiring
 ```
 
 
 ### MVC Flow
-- **Model**: `GameModel` holds game state and acts as a monitor.
+- **Model**: `Model` defines the game contract; `GameModel` is the monitor implementation.
 - **View**: Renders immutable snapshots received from the controller.
 - **Controller**: Processes user input, applies model commands, retrieves snapshots from the model, and passes them to the view.
 - **Active Components**: `GameLoopThread`/`GameLoopTask` still drive the frame cadence and trigger snapshot/render updates; bot components update the model asynchronously.
@@ -167,8 +167,8 @@ src/main/java/it/unibo/sampleapp/
 │           ├── BotTask.java     # Bot AI task
 │           └── GameLoopTask.java    # Physics loop task
 ├── model/
-│   ├── GameModel.java           # Model interface
-│   ├── GameModelImpl.java       # Model implementation (monitor)
+│   ├── Model.java               # Model interface
+│   ├── GameModel.java           # Model implementation (monitor)
 │   ├── ball/
 │   │   ├── Ball.java            # Ball interface
 │   │   └── impl/
@@ -180,12 +180,12 @@ src/main/java/it/unibo/sampleapp/
 │   ├── snapshot/
 │   │   ├── BallSnapshot.java    # Immutable ball snapshot
 │   │   └── GameSnapshot.java    # Immutable game snapshot
+│   ├── physics/
+│   │   └── PhysicsEngine.java   # Physics simulation
 │   └── status/
 │       └── GameStatus.java      # Game status enum
 ├── util/
-│   ├── Vector2D.java            # 2D vector utilities
-│   └── physics/
-│       └── PhysicsEngine.java   # Physics simulation
+│   └── Vector2D.java            # 2D vector utilities
 ├── view/
 │   ├── View.java                # View interface
 │   ├── ViewImpl.java            # Swing view implementation
