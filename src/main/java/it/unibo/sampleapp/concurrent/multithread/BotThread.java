@@ -47,7 +47,11 @@ public final class BotThread extends Thread {
             final GameSnapshot snapshot = model.getSnapshot();
             final Vector2D direction = findBestMoveDirection(snapshot);
             model.applyImpulseToBot(direction);
-
+            try {
+                Thread.sleep(3500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             LockSupport.parkNanos(BOT_THINK_TIME_MS * 1_000_000L);
             if (isInterrupted()) {
                 break;
