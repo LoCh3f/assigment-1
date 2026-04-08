@@ -8,7 +8,7 @@ import it.unibo.sampleapp.model.ball.impl.ImplBall;
 import it.unibo.sampleapp.model.hole.Hole;
 import it.unibo.sampleapp.model.hole.impl.HoleImpl;
 import it.unibo.sampleapp.util.Vector2D;
-import it.unibo.sampleapp.util.physics.PhysicsEngine;
+import it.unibo.sampleapp.model.physics.PhysicsEngine;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

@@ -7,7 +7,7 @@ import it.unibo.sampleapp.model.hole.impl.HoleImpl;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
 import it.unibo.sampleapp.model.status.GameStatus;
-import it.unibo.sampleapp.util.physics.PhysicsEngine;
+import it.unibo.sampleapp.model.physics.PhysicsEngine;
 import it.unibo.sampleapp.util.Vector2D;
 
 import java.util.ArrayList;

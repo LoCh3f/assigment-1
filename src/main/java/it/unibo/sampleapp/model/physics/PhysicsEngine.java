@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.util.physics;
+package it.unibo.sampleapp.model.physics;
 
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.hole.Hole;
