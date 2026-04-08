@@ -6,7 +6,6 @@ import it.unibo.sampleapp.model.status.GameStatus;
 import it.unibo.sampleapp.util.Vector2D;
 
 import javax.swing.JFrame;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
@@ -20,6 +19,12 @@ import it.unibo.sampleapp.view.board.BoardPanel;
 
 import java.io.Serial;
 
+import static it.unibo.sampleapp.view.costants.ViewConstants.COLOR_BOARD;
+import static it.unibo.sampleapp.view.costants.ViewConstants.IMPULSE_MAGNITUDE;
+import static it.unibo.sampleapp.view.costants.ViewConstants.MAX_POWER_MULTIPLIER;
+import static it.unibo.sampleapp.view.costants.ViewConstants.MAX_POWER_TIME;
+import static it.unibo.sampleapp.view.costants.ViewConstants.MIN_POWER_MULTIPLIER;
+
 /**
  * The View layer — purely passive.
  * Responsibilities:
@@ -31,11 +36,6 @@ public final class ViewImpl extends JFrame implements View {
 
     @Serial
     private static final long serialVersionUID = 1L;
-    private static final double IMPULSE_MAGNITUDE = 1.0;
-    private static final double MAX_POWER_TIME = 2000.0;
-    private static final double MIN_POWER_MULTIPLIER = 0.3;
-    private static final double MAX_POWER_MULTIPLIER = 2.0;
-    private static final Color COLOR_BOARD = new Color(34, 85, 34);
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     private final transient Controller controller;
