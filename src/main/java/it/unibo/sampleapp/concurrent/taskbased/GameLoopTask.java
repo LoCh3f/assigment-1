@@ -1,5 +1,6 @@
 package it.unibo.sampleapp.concurrent.taskbased;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.sampleapp.model.GameModel;
 import it.unibo.sampleapp.view.View;
 
@@ -23,6 +24,10 @@ public final class GameLoopTask implements Runnable {
     private static final double TICK_S = TICK_MS / 1000.0;
 
     private final GameModel model;
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "View is application-owned and only used to push immutable snapshots"
+    )
     private final View view;
     private final AtomicInteger framesThisSecond = new AtomicInteger(0);
     private long lastFpsTimeMs;

@@ -59,6 +59,10 @@ public final class ControllerImpl implements Controller {
      *
      * @param view the view to control
      */
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP2",
+            justification = "View reference is provided by the composition root during startup wiring"
+    )
     @Override
     public void setView(final View view) {
         this.view = view;

@@ -22,6 +22,8 @@ public final class BotThread extends Thread {
     private static final double DEFENSIVE_NOISE_AMOUNT = 0.2;
     private static final double PI_MULTIPLE = 2.0;
     private static final long BOT_THINK_TIME_MS = 250L;
+    private static final long BOT_MOVE_DELAY_MS = 3500L;
+    private static final long NANOS_PER_MILLIS = 1_000_000L;
 
     private final GameModel model;
     private final Random rng = new Random();
@@ -48,11 +50,12 @@ public final class BotThread extends Thread {
             final Vector2D direction = findBestMoveDirection(snapshot);
             model.applyImpulseToBot(direction);
             try {
-                Thread.sleep(3500);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                sleep(BOT_MOVE_DELAY_MS);
+            } catch (final InterruptedException e) {
+                currentThread().interrupt();
+                break;
             }
-            LockSupport.parkNanos(BOT_THINK_TIME_MS * 1_000_000L);
+            LockSupport.parkNanos(BOT_THINK_TIME_MS * NANOS_PER_MILLIS);
             if (isInterrupted()) {
                 break;
             }

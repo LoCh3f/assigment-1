@@ -43,7 +43,7 @@ public final class BotTask implements Runnable {
      * Starts the bot by submitting this task to the executor.
      */
     public void start() {
-        executor.submit(this);
+        executor.execute(this);
     }
 
     /**

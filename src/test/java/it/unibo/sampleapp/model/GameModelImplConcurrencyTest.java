@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class GameModelImplConcurrencyTest {
 
+    private static final int TIMEOUT_MILLISECONDS = 300;
+
     @Test
     void botImpulseDoesNotWaitForHumanBallToStop() {
         final GameModelImpl model = new GameModelImpl(900, 600, 0);
@@ -25,7 +27,7 @@ class GameModelImplConcurrencyTest {
         try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
             final Future<?> future = executor.submit(() -> model.applyImpulseToBot(new Vector2D(-1, 0)));
 
-            assertDoesNotThrow(() -> future.get(300, TimeUnit.MILLISECONDS));
+            assertDoesNotThrow(() -> future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS));
             assertEquals(GameStatus.PLAYING, model.getStatus());
         }
     }

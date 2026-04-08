@@ -30,17 +30,19 @@ public final class BoardPanel extends JPanel {
     private static final Color COLOR_SUBTEXT = new Color(200, 200, 200);
     private static final Color COLOR_HUD_BACKGROUND = new Color(255, 255, 255, 200);
     private static final Color COLOR_BLACK_TEXT = Color.BLACK;
-    private static final Color COLOR_TURN_HUMAN = new Color(70, 130, 230, 180);
-    private static final Color COLOR_TURN_BOT = new Color(220, 60, 60, 180);
     private static final String FONT_NAME = "Monospaced";
     private static final int FONT_SIZE_HUD = 18;
     private static final int FONT_SIZE_MESSAGE = 48;
     private static final int FONT_SIZE_SUBLABEL = 16;
     private static final int PADDING_HUD = 12;
-    private static final int PADDING_TURN = 10;
     private static final int CORNER_RADIUS = 8;
     private static final int MESSAGE_OFFSET = 36;
-    private static final int TURN_BOX_Y = 12;
+    private static final int COLOR_AIMING_CIRCLE_RED = 255;
+    private static final int COLOR_AIMING_CIRCLE_GREEN = 255;
+    private static final int COLOR_AIMING_CIRCLE_BLUE = 0;
+    private static final int COLOR_AIMING_CIRCLE_ALPHA = 128;
+    private static final double AIMING_LINE_SCALE = 100.0;
+    private static final double POWER_INDICATOR_SCALE = 15.0;
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -225,19 +227,19 @@ public final class BoardPanel extends JPanel {
     /**
      * Sets the aiming state variables.
      *
-     * @param isAiming        whether the player is currently aiming
-     * @param aimStartPoint   the starting point of the aim (where the mouse pressed)
-     * @param aimEndPoint     the ending point of the aim (where the mouse released)
-     * @param powerMultiplier the multiplier for power based on aim length
+     * @param isAimingState    whether the player is currently aiming
+     * @param aimStart         the starting point of the aim (where the mouse pressed)
+     * @param aimEnd           the ending point of the aim (where the mouse released)
+     * @param power            the multiplier for power based on aim length
      */
-    public void setAimingState(final boolean isAiming,
-                                final Point2D.Double aimStartPoint,
-                                final Point2D.Double aimEndPoint,
-                                final double powerMultiplier) {
-        this.isAiming = isAiming;
-        this.aimStartPoint = aimStartPoint;
-        this.aimEndPoint = aimEndPoint;
-        this.powerMultiplier = powerMultiplier;
+    public void setAimingState(final boolean isAimingState,
+                                final Point2D.Double aimStart,
+                                final Point2D.Double aimEnd,
+                                final double power) {
+        this.isAiming = isAimingState;
+        this.aimStartPoint = aimStart == null ? null : new Point2D.Double(aimStart.x, aimStart.y);
+        this.aimEndPoint = aimEnd == null ? null : new Point2D.Double(aimEnd.x, aimEnd.y);
+        this.powerMultiplier = power;
         repaint(); // Repaint to update aiming visuals
     }
 
@@ -264,9 +266,8 @@ public final class BoardPanel extends JPanel {
         }
 
         // Normalize and scale the direction
-        final double scale = 100.0; // Length of the aiming line
-        final double scaledDx = dx / length * scale;
-        final double scaledDy = dy / length * scale;
+        final double scaledDx = dx / length * AIMING_LINE_SCALE;
+        final double scaledDy = dy / length * AIMING_LINE_SCALE;
 
         // Draw the aiming line from the human ball in the direction of the aim
         final double ballX = humanBall.position().x();
@@ -283,8 +284,10 @@ public final class BoardPanel extends JPanel {
         drawArrowhead(g2, ballX, ballY, ballX + scaledDx, ballY + scaledDy);
 
         // Draw a power indicator circle at the ball
-        final int radius = (int) (powerMultiplier * 15); // Scale the radius by the power multiplier
-        g2.setColor(new Color(255, 255, 0, 128)); // Semi-transparent yellow
+        final int radius = (int) (powerMultiplier * POWER_INDICATOR_SCALE);
+        final Color aimingColor = new Color(COLOR_AIMING_CIRCLE_RED, COLOR_AIMING_CIRCLE_GREEN,
+                COLOR_AIMING_CIRCLE_BLUE, COLOR_AIMING_CIRCLE_ALPHA);
+        g2.setColor(aimingColor);
         g2.fillOval(
                 (int) (ballX - radius),
                 (int) (ballY - radius),

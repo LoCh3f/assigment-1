@@ -31,8 +31,11 @@ public final class ViewImpl extends JFrame implements View {
 
     @Serial
     private static final long serialVersionUID = 1L;
-    private static final Color COLOR_BOARD = new Color(34, 85, 34);
     private static final double IMPULSE_MAGNITUDE = 1.0;
+    private static final double MAX_POWER_TIME = 2000.0;
+    private static final double MIN_POWER_MULTIPLIER = 0.3;
+    private static final double MAX_POWER_MULTIPLIER = 2.0;
+    private static final Color COLOR_BOARD = new Color(34, 85, 34);
 
     @SuppressFBWarnings("EI_EXPOSE_REP2")
     private final transient Controller controller;
@@ -42,9 +45,6 @@ public final class ViewImpl extends JFrame implements View {
     private Point aimStartPoint;
     private Point aimEndPoint;
     private long aimStartTime;
-    private static final double MAX_POWER_TIME = 2000.0;
-    private static final double MIN_POWER_MULTIPLIER = 0.3;
-    private static final double MAX_POWER_MULTIPLIER = 2.0;
 
     /**
      * Constructs a new ViewImpl with the given board dimensions and observer.
