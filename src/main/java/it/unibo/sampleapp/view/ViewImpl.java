@@ -147,10 +147,11 @@ public final class ViewImpl extends JFrame implements View {
             @Override
             public void mouseReleased(final MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1 && isAiming) {
-                    isAiming = false;
                     aimEndPoint = e.getPoint();
+                    // Power must be computed while aiming is still active.
                     final double powerMultiplier = calculatePowerMultiplier();
                     controller.onShoot(aimStartPoint, aimEndPoint, powerMultiplier);
+                    isAiming = false;
                 }
             }
         });
