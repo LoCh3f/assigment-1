@@ -20,11 +20,6 @@ public interface Controller {
     void onDirectionInput(Vector2D impulse);
 
     /**
-     * Handles the game start event.
-     */
-    void onGameStartRequested();
-
-    /**
      * Returns the current frames per second.
      *
      * @return the current FPS value

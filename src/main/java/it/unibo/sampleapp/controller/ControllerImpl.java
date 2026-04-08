@@ -121,14 +121,6 @@ public final class ControllerImpl implements Controller {
         model.applyImpulseToHuman(impulse);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onGameStartRequested() {
-        start();
-    }
-
     private void watchForGameOver() {
         try {
             // Blocks until GameModel.notifyAll() is called on game over
