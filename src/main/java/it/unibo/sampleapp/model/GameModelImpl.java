@@ -136,7 +136,7 @@ public final class GameModelImpl implements GameModel {
                 .toList();
         return new GameSnapshot(snapshots,
                 humanScore, botScore,
-                status, List.copyOf(holes), boardWidth, boardHeight, GameSnapshot.Turn.HUMAN);
+                status, List.copyOf(holes), boardWidth, boardHeight);
     }
 
     /**

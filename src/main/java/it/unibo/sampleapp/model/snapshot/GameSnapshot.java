@@ -16,7 +16,6 @@ import java.util.List;
  * @param holes        list of holes on the board
  * @param width        the width of the game board
  * @param height       the height of the game board
- * @param currentTurn  the current turn indicator
  */
 public record GameSnapshot(
         List<BallSnapshot> balls,
@@ -25,13 +24,8 @@ public record GameSnapshot(
         GameStatus status,
         List<Hole> holes,
         int width,
-        int height,
-        Turn currentTurn
+        int height
 ) {
-    /**
-     * Turn indicator enum.
-     */
-    public enum Turn { HUMAN, BOT }
 
     /**
      * Compact constructor that creates defensive copies of mutable lists.

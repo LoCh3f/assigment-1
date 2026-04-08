@@ -9,8 +9,8 @@ A concurrent implementation of a pool-like game where a human player and a bot c
 Poool is a simplified pool game with the following elements:
 - **Board**: 900x600 pixel playing area with walls and holes.
 - **Balls**: 500 small balls, 1 human-controlled ball (blue), 1 bot-controlled ball (red).
-- **Objective**: Players take turns hitting balls. The player who pockets the most small balls wins.
-- **Asynchronous Gameplay**: Players can move whenever all balls are stopped, without turn restrictions.
+- **Objective**: Human and bot compete to pocket as many small balls as possible.
+- **Asynchronous Gameplay**: Players can move whenever all balls are stopped.
 - **Physics**: Realistic ball movement with friction, elastic collisions, and wall bounces.
 - **Concurrency**: Asynchronous gameplay with separate threads/tasks for physics simulation, bot AI, and user input.
 
@@ -36,7 +36,6 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 │  - List<Ball> balls                          │
 │  - int humanScore, botScore                  │
 │  - GameStatus status                         │
-│  - Turn currentTurn                          │
 │  + synchronized getters/setters              │
 └───┬───────────────┬───────────────┬──────────┘
 │               │               │
@@ -57,7 +56,7 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 ### Key Components
 
 - **Model**: `GameModel` acts as a monitor with synchronized methods for thread-safe access to game state.
-- **View**: Swing-based GUI displaying the board, balls, scores, FPS, and current turn. Uses immutable snapshots to avoid blocking the physics loop.
+- **View**: Swing-based GUI displaying the board, balls, scores, and FPS. Uses immutable snapshots to avoid blocking the physics loop.
 - **Controller**: Handles user input and coordinates between model and view.
 - **Physics**: Simulates ball movement, collisions, friction, and hole detection.
 - **Concurrency**: Two implementations for the physics loop and bot AI.
@@ -123,7 +122,7 @@ The window title will display "Pool - MULTITHREAD" or "Pool - TASKBASED" to indi
 
 - **Arrow Keys**: Apply impulse to human ball (up, down, left, right) - only works when all balls are stopped.
 - **Mouse**: Click and drag to aim and shoot with power based on hold time - only works when all balls are stopped.
-- **Gameplay**: Asynchronous play - both players can move whenever all balls are stopped, without turn restrictions.
+- **Gameplay**: Asynchronous play - both players can move whenever all balls are stopped.
 
 ## Testing
 
