@@ -40,7 +40,6 @@ public final class ControllerImpl implements Controller {
     private ScheduledExecutorService gameLoopExecutor;
     private ExecutorService botExecutor;
     private GameLoopTask gameLoopTask;
-    private BotTask botTask;
 
     /**
      * Constructs a new ControllerImpl with the given model and concurrency mode.
@@ -80,10 +79,9 @@ public final class ControllerImpl implements Controller {
             gameLoopExecutor = Executors.newSingleThreadScheduledExecutor();
             botExecutor = Executors.newSingleThreadExecutor();
             gameLoopTask = new GameLoopTask(model, view);
-            botTask = new BotTask(model, botExecutor);
 
             gameLoopTask.start(gameLoopExecutor);
-            botTask.start();
+            new BotTask(model, botExecutor).start();
         }
 
         // Wait for game over on a dedicated thread so we don't block the EDT
@@ -116,10 +114,7 @@ public final class ControllerImpl implements Controller {
      */
     @Override
     public void onDirectionInput(final Vector2D impulse) {
-        // Run off the EDT so blocking wait() in GameModel doesn't freeze the UI
-        Thread.ofPlatform().name("input-relay").start(() ->
-                model.applyImpulseToHuman(impulse)
-        );
+        model.applyImpulseToHuman(impulse);
     }
 
     /**
@@ -189,9 +184,6 @@ public final class ControllerImpl implements Controller {
         final Vector2D impulse = new Vector2D(dx, dy).normalize()
                 .scale(powerMultiplier * 200.0); // Scale to match existing impulse strength
 
-        // Run off the EDT so blocking wait() in GameModel doesn't freeze the UI
-        Thread.ofPlatform().name("shoot-relay").start(() ->
-                model.applyImpulseToHuman(impulse)
-        );
+        model.applyImpulseToHuman(impulse);
     }
 }

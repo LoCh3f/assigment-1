@@ -9,7 +9,6 @@ import it.unibo.sampleapp.util.Vector2D;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 /**
  * The bot agent using task-based approach with Executor Framework.
@@ -23,11 +22,11 @@ public final class BotTask implements Runnable {
     private static final double TARGET_NOISE_AMOUNT = 0.15;
     private static final double DEFENSIVE_NOISE_AMOUNT = 0.2;
     private static final double PI_MULTIPLE = 2.0;
+    private static final long BOT_THINK_TIME_MS = 250L;
 
     private final GameModel model;
     private final Random rng = new Random();
     private final ExecutorService executor;
-    private Future<?> future;
 
     /**
      * Constructs a new BotTask with the given model and executor.
@@ -44,7 +43,7 @@ public final class BotTask implements Runnable {
      * Starts the bot by submitting this task to the executor.
      */
     public void start() {
-        future = executor.submit(this);
+        executor.submit(this);
     }
 
     /**
@@ -54,14 +53,18 @@ public final class BotTask implements Runnable {
      */
     @Override
     public void run() {
-        if (Thread.currentThread().isInterrupted()) {
-            return;
+        while (!Thread.currentThread().isInterrupted()) {
+            final GameSnapshot snapshot = model.getSnapshot();
+            final Vector2D direction = findBestMoveDirection(snapshot);
+            model.applyImpulseToBot(direction);
+
+            try {
+                Thread.sleep(BOT_THINK_TIME_MS);
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
         }
-        final GameSnapshot snapshot = model.getSnapshot();
-        final Vector2D direction = findBestMoveDirection(snapshot);
-        model.applyImpulseToBot(direction);
-        // Resubmit to continue looping
-        future = executor.submit(this);
     }
 
     /**
@@ -157,12 +160,4 @@ public final class BotTask implements Runnable {
         return new Vector2D(rotatedX, rotatedY).normalize();
     }
 
-    /**
-     * Stops the bot task.
-     */
-    public void stop() {
-        if (future != null) {
-            future.cancel(true);
-        }
-    }
 }

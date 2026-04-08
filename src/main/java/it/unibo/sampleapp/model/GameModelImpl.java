@@ -19,12 +19,9 @@ import java.util.List;
  * required by the assignment (no library support).
  *
  * <p>
- * Asynchronous gameplay: Players can move whenever all balls are stopped.
- *
- * <p>
  * Thread interaction:
  *  - GameLoopThread → calls applyPhysicsStep() every tick
- *  - Swing EDT → calls applyImpulseToHuman() on key press
+ *  - Swing EDT → calls applyImpulseToHuman() on key press or mouse release
  *  - BotThread → calls applyImpulseToBot() on its own schedule
  *  - View → calls getSnapshot() each repaint
  */
@@ -38,8 +35,6 @@ public final class GameModelImpl implements GameModel {
     private static final double BOT_BALL_X_RATIO = 0.75;
     private static final double BOT_BALL_Y_RATIO = 0.75;
     private static final double TOP_HALF_RATIO = 0.5;
-    private static final double STOP_THRESHOLD = 5.0;
-
     private final List<Ball> balls;
     private final List<Hole> holes;
     private final Ball humanBall;
@@ -103,7 +98,6 @@ public final class GameModelImpl implements GameModel {
         handlePocketedBalls(pocketed);
         checkWinCondition();
 
-        // Asynchronous play: no turn switching, just wake up waiting players
         notifyAll();
     }
 
@@ -112,15 +106,6 @@ public final class GameModelImpl implements GameModel {
      */
     @Override
     public synchronized void applyImpulseToHuman(final Vector2D direction) {
-        // Asynchronous play: allow human to move whenever balls are stopped
-        try {
-            while (status == GameStatus.PLAYING && !allBallsStopped()) {
-                wait();
-            }
-        } catch (final InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-        }
         if (status != GameStatus.PLAYING) {
             return;
         }
@@ -132,15 +117,6 @@ public final class GameModelImpl implements GameModel {
 
     @Override
     public synchronized void applyImpulseToBot(final Vector2D direction) {
-        // Asynchronous play: allow bot to move whenever balls are stopped
-        try {
-            while (status == GameStatus.PLAYING && !allBallsStopped()) {
-                wait();
-            }
-        } catch (final InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-        }
         if (status != GameStatus.PLAYING) {
             return;
         }
@@ -287,10 +263,5 @@ public final class GameModelImpl implements GameModel {
                     Ball.Type.SMALL
             ));
         }
-    }
-
-    private boolean allBallsStopped() {
-        return balls.stream()
-                .allMatch(b -> b.getVelocity().magnitude() <= STOP_THRESHOLD);
     }
 }
