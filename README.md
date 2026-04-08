@@ -141,6 +141,13 @@ src/main/java/it/unibo/sampleapp/
 ├── controller/
 │   ├── Controller.java          # Controller interface
 │   └── ControllerImpl.java      # Controller implementation
+│   └── concurrent/
+│       ├── multithread/         # Thread-based concurrency
+│       │   ├── BotThread.java   # Bot AI thread
+│       │   └── GameLoopThread.java  # Physics loop thread
+│       └── taskbased/           # Executor-based concurrency
+│           ├── BotTask.java     # Bot AI task
+│           └── GameLoopTask.java    # Physics loop task
 ├── model/
 │   ├── GameModel.java           # Model interface
 │   ├── GameModelImpl.java       # Model implementation (monitor)
@@ -166,13 +173,6 @@ src/main/java/it/unibo/sampleapp/
 │   ├── ViewImpl.java            # Swing view implementation
 │   └── board/
 │       └── BoardPanel.java      # Board rendering panel
-└── concurrent/
-    ├── multithread/             # Thread-based concurrency
-    │   ├── BotThread.java       # Bot AI thread
-    │   └── GameLoopThread.java  # Physics loop thread
-    └── taskbased/               # Executor-based concurrency
-        ├── BotTask.java         # Bot AI task
-        └── GameLoopTask.java    # Physics loop task
 ```
 
 ## Key Design Decisions
