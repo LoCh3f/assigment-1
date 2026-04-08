@@ -13,6 +13,16 @@ import it.unibo.sampleapp.util.Vector2D;
 import java.util.ArrayList;
 import java.util.List;
 
+import static it.unibo.sampleapp.model.GameModelConstants.BOT_BALL_X_RATIO;
+import static it.unibo.sampleapp.model.GameModelConstants.BOT_BALL_Y_RATIO;
+import static it.unibo.sampleapp.model.GameModelConstants.HOLE_RADIUS;
+import static it.unibo.sampleapp.model.GameModelConstants.HUMAN_BALL_X_RATIO;
+import static it.unibo.sampleapp.model.GameModelConstants.HUMAN_BALL_Y_RATIO;
+import static it.unibo.sampleapp.model.GameModelConstants.IMPULSE_STRENGTH;
+import static it.unibo.sampleapp.model.GameModelConstants.PLAYER_BALL_RADIUS;
+import static it.unibo.sampleapp.model.GameModelConstants.SMALL_BALL_RADIUS;
+import static it.unibo.sampleapp.model.GameModelConstants.TOP_HALF_RATIO;
+
 /**
  * The game monitor. Single point of truth for all mutable game state.
  * Every public method is synchronized — this is the custom monitor
@@ -26,15 +36,6 @@ import java.util.List;
  *  - View → calls getSnapshot() each repaint
  */
 public final class GameModel implements Model {
-    private static final double IMPULSE_STRENGTH = 200.0;
-    private static final double PLAYER_BALL_RADIUS = 15.0;
-    private static final double SMALL_BALL_RADIUS = 7.0;
-    private static final double HOLE_RADIUS = 18.0;
-    private static final double HUMAN_BALL_X_RATIO = 0.25;
-    private static final double HUMAN_BALL_Y_RATIO = 0.75;
-    private static final double BOT_BALL_X_RATIO = 0.75;
-    private static final double BOT_BALL_Y_RATIO = 0.75;
-    private static final double TOP_HALF_RATIO = 0.5;
     private final List<Ball> balls;
     private final List<Hole> holes;
     private final Ball humanBall;
