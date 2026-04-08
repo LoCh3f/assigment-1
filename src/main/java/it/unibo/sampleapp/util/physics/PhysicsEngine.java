@@ -143,9 +143,14 @@ public class PhysicsEngine {
      * Detects and resolves all ball-to-ball collisions.
      *
      * <p>
-     * Uses an O(n²) brute-force approach to check all pairs of balls for collisions.
-     * For large numbers of balls (thousands+), consider spatial optimization such as
-     * grid partitioning or spatial hashing for better performance.
+     * Uses a uniform spatial grid as a broad-phase optimization.
+     * Balls are bucketed by cell, then narrow-phase collision checks are executed only:
+     * <ul>
+     *   <li>within the same cell (pairwise i &lt; j)</li>
+     *   <li>between a cell and its 8 neighboring cells</li>
+     * </ul>
+     * This reduces unnecessary pair checks compared to full all-vs-all scanning,
+     * while preserving the same collision response semantics.
      *
      * @param balls the list of all active balls
      */
