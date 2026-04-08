@@ -1,12 +1,12 @@
 package it.unibo.sampleapp.controller;
 
 import it.unibo.sampleapp.Main.ConcurrencyMode;
-import it.unibo.sampleapp.concurrent.multithread.GameLoopThread;
-import it.unibo.sampleapp.concurrent.multithread.BotThread;
-import it.unibo.sampleapp.concurrent.taskbased.GameLoopTask;
-import it.unibo.sampleapp.concurrent.taskbased.BotTask;
+import it.unibo.sampleapp.controller.concurrent.multithread.GameLoopThread;
+import it.unibo.sampleapp.controller.concurrent.multithread.BotThread;
+import it.unibo.sampleapp.controller.concurrent.taskbased.GameLoopTask;
+import it.unibo.sampleapp.controller.concurrent.taskbased.BotTask;
+import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.model.GameModel;
-import it.unibo.sampleapp.model.GameModelImpl;
 import it.unibo.sampleapp.model.status.GameStatus;
 import it.unibo.sampleapp.util.Vector2D;
 import it.unibo.sampleapp.view.View;
@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
  */
 public final class ControllerImpl implements Controller {
 
-    private final GameModel model;
+    private final Model model;
     private final ConcurrencyMode mode;
     @SuppressFBWarnings("UwF")
     private View view;
@@ -47,7 +47,7 @@ public final class ControllerImpl implements Controller {
      * @param model the game model to control
      * @param mode the concurrency mode (MULTITHREAD or TASKBASED)
      */
-    public ControllerImpl(final GameModel model, final ConcurrencyMode mode) {
+    public ControllerImpl(final Model model, final ConcurrencyMode mode) {
         this.model = model;
         this.mode = mode;
     }
@@ -132,7 +132,7 @@ public final class ControllerImpl implements Controller {
     private void watchForGameOver() {
         try {
             // Blocks until GameModel.notifyAll() is called on game over
-            ((GameModelImpl) model).waitUntilGameOver();
+            ((GameModel) model).waitUntilGameOver();
             final GameStatus result = model.getStatus();
             stop();
             // Push game-over to the view on the EDT

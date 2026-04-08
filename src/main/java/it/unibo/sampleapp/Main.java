@@ -1,8 +1,8 @@
 package it.unibo.sampleapp;
 
 import it.unibo.sampleapp.controller.ControllerImpl;
+import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.model.GameModel;
-import it.unibo.sampleapp.model.GameModelImpl;
 import it.unibo.sampleapp.view.View;
 import it.unibo.sampleapp.view.ViewImpl;
 
@@ -39,7 +39,7 @@ public final class Main {
                 ? ConcurrencyMode.TASKBASED
                 : ConcurrencyMode.MULTITHREAD;
 
-        final GameModel model = new GameModelImpl(BOARD_W, BOARD_H, NUM_SMALL_BALLS);
+        final Model model = new GameModel(BOARD_W, BOARD_H, NUM_SMALL_BALLS);
 
         final ControllerImpl controller = new ControllerImpl(model, mode);
 

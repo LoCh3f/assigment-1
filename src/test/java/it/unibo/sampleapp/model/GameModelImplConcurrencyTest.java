@@ -21,7 +21,7 @@ class GameModelImplConcurrencyTest {
 
     @Test
     void botImpulseDoesNotWaitForHumanBallToStop() {
-        final GameModelImpl model = new GameModelImpl(900, 600, 0);
+        final GameModel model = new GameModel(900, 600, 0);
         model.applyImpulseToHuman(new Vector2D(1, 0));
 
         try (ExecutorService executor = Executors.newSingleThreadExecutor()) {

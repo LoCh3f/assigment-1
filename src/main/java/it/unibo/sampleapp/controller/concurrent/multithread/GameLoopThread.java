@@ -1,7 +1,7 @@
-package it.unibo.sampleapp.concurrent.multithread;
+package it.unibo.sampleapp.controller.concurrent.multithread;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import it.unibo.sampleapp.model.GameModel;
+import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.view.View;
 
 /**
@@ -18,7 +18,7 @@ public final class GameLoopThread extends Thread {
     private static final long TICK_MS = 1000 / TARGET_FPS;
     private static final double TICK_S = TICK_MS / 1000.0;
 
-    private final GameModel model;
+    private final Model model;
     @SuppressFBWarnings(
             value = "EI_EXPOSE_REP2",
             justification = "View is provided by the application wiring and only used for update callbacks"
@@ -34,7 +34,7 @@ public final class GameLoopThread extends Thread {
      * @param model the game model to update
      * @param view the view to update with snapshots
      */
-    public GameLoopThread(final GameModel model, final View view) {
+    public GameLoopThread(final Model model, final View view) {
         super("game-loop");
         this.model = model;
         this.view = view;

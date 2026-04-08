@@ -27,12 +27,43 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
       ^                                              |                                        ^
       |                                              | update(GameSnapshot)                   |
       +--------------------------- Controller --------------------------- getSnapshot() ------+
-
- Concrete types:
- - View = ViewImpl
- - Controller = ControllerImpl
- - Model = GameModelImpl
 ```
+
+### MVC Interfaces UML (Methods + Dependencies)
+
+```text
+ +-----------------------------+          +------------------------------+          +--------------------------------+
+ | <<interface>> View          |          | <<interface>> Controller     |          | <<interface>> GameModel        |
+ +-----------------------------+          +------------------------------+          +--------------------------------+
+ | +show()                     |          | +setView(View)               |          | +applyPhysicsStep(double)      |
+ | +update(GameSnapshot)       |          | +onDirectionInput(Vector2D)  |          | +applyImpulseToHuman(Vector2D) |
+ | +displayGameOver(GameStatus)|          | +onGameStartRequested()      |          | +applyImpulseToBot(Vector2D)   |
+ | +setConcurrencyMode(String) |          | +getCurrentFps()             |          | +getSnapshot(): GameSnapshot   |
+ +-----------------------------+          | +onAim(Point,Point,double)   |          | +getStatus(): GameStatus       |
+                                          | +onShoot(Point,Point,double) |          +--------------------------------+
+                                          +------------------------------+
+
+ +-----------------------------+          +------------------------------+          +--------------------------------+
+ | ViewImpl                     |         | ControllerImpl                |         | GameModelImpl                  |
+ +-----------------------------+          +------------------------------+          +--------------------------------+
+ | - controller: Controller     |         | - model: GameModel            |         | - physicsEngine: PhysicsEngine |
+ | +update(GameSnapshot)        |         | - view: View                  |         | +applyPhysicsStep(double)      |
+ | +displayGameOver(GameStatus) |         | +setView(View)                |         | +applyImpulseToHuman(Vector2D) |
+ | +show()                      |         | +onDirectionInput(Vector2D)   |         | +applyImpulseToBot(Vector2D)   |
+ +-----------------------------+          | +onShoot(Point,Point,double)  |         | +getSnapshot(): GameSnapshot   |
+                                          | +getCurrentFps()              |         | +getStatus(): GameStatus       |
+                                          +------------------------------+          +--------------------------------+
+
+ Relationships:
+ - ViewImpl ..|> View
+ - ControllerImpl ..|> Controller
+ - GameModelImpl ..|> GameModel
+ - ViewImpl --> ControllerImpl : onDirectionInput/onShoot
+ - ControllerImpl --> GameModelImpl : applyImpulseToHuman/getSnapshot
+ - ControllerImpl --> ViewImpl : update(snapshot)/displayGameOver
+ - Main --> ControllerImpl, ViewImpl, GameModelImpl : wiring
+```
+
 
 ### MVC Flow
 - **Model**: `GameModel` holds game state and acts as a monitor.
@@ -167,7 +198,7 @@ src/main/java/it/unibo/sampleapp/
 - **Monitor Pattern**: `GameModel` uses `synchronized` methods and `wait()`/`notifyAll()` for thread coordination.
 - **Snapshot Rendering**: View reads immutable copies of game state to prevent data races.
 - **Asynchronous Input**: User input is handled on Swing EDT, decoupled from physics loop.
-- **Event-Driven Bot**: Bot waits for balls to stop before acting, ensuring fair play.
+- **Event-Driven Bot**: Bot waits few after any play, ensuring fair play.
 
 ## Performance Notes
 

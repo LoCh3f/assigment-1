@@ -1,6 +1,6 @@
-package it.unibo.sampleapp.concurrent.multithread;
+package it.unibo.sampleapp.controller.concurrent.multithread;
 
-import it.unibo.sampleapp.model.GameModel;
+import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
@@ -25,7 +25,7 @@ public final class BotThread extends Thread {
     private static final long BOT_MOVE_DELAY_MS = 3500L;
     private static final long NANOS_PER_MILLIS = 1_000_000L;
 
-    private final GameModel model;
+    private final Model model;
     private final Random rng = new Random();
 
     /**
@@ -33,7 +33,7 @@ public final class BotThread extends Thread {
      *
      * @param model the game model to control the bot ball
      */
-    public BotThread(final GameModel model) {
+    public BotThread(final Model model) {
         super("bot-agent");
         this.model = model;
         setDaemon(true);

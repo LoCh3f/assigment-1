@@ -1,6 +1,6 @@
-package it.unibo.sampleapp.concurrent.taskbased;
+package it.unibo.sampleapp.controller.concurrent.taskbased;
 
-import it.unibo.sampleapp.model.GameModel;
+import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
@@ -24,7 +24,7 @@ public final class BotTask implements Runnable {
     private static final double PI_MULTIPLE = 2.0;
     private static final long BOT_THINK_TIME_MS = 250L;
 
-    private final GameModel model;
+    private final Model model;
     private final Random rng = new Random();
     private final ExecutorService executor;
 
@@ -34,7 +34,7 @@ public final class BotTask implements Runnable {
      * @param model the game model to control the bot ball
      * @param executor the executor to run on
      */
-    public BotTask(final GameModel model, final ExecutorService executor) {
+    public BotTask(final Model model, final ExecutorService executor) {
         this.model = model;
         this.executor = executor;
     }

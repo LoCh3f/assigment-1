@@ -1,7 +1,7 @@
-package it.unibo.sampleapp.concurrent.taskbased;
+package it.unibo.sampleapp.controller.concurrent.taskbased;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import it.unibo.sampleapp.model.GameModel;
+import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.view.View;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,7 +23,7 @@ public final class GameLoopTask implements Runnable {
     private static final long TICK_MS = 1000 / TARGET_FPS;
     private static final double TICK_S = TICK_MS / 1000.0;
 
-    private final GameModel model;
+    private final Model model;
     @SuppressFBWarnings(
             value = "EI_EXPOSE_REP2",
             justification = "View is application-owned and only used to push immutable snapshots"
@@ -40,7 +40,7 @@ public final class GameLoopTask implements Runnable {
      * @param model the game model to update
      * @param view the view to update with snapshots
      */
-    public GameLoopTask(final GameModel model, final View view) {
+    public GameLoopTask(final Model model, final View view) {
         this.model = model;
         this.view = view;
         this.lastFpsTimeMs = System.currentTimeMillis();
