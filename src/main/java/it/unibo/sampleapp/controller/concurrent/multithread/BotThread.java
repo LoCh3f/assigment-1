@@ -10,20 +10,20 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.LockSupport;
 
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.DEFENSIVE_NOISE_AMOUNT;
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.BOT_MOVE_DELAY_MS;
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.BOT_THINK_TIME_MS;
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.NANOS_PER_MILLIS;
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.MIN_DISTANCE_TO_CONSIDER;
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.PI_MULTIPLE;
+import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.TARGET_NOISE_AMOUNT;
+
 /**
  * The bot agent. Runs asynchronously and independently of the game loop.
  * Strategy: Analyzes the board and prioritizes targeting small balls to score points.
  * Falls back to random direction if no clear target is available.
  */
 public final class BotThread extends Thread {
-
-    private static final double MIN_DISTANCE_TO_CONSIDER = 50.0;
-    private static final double TARGET_NOISE_AMOUNT = 0.15;
-    private static final double DEFENSIVE_NOISE_AMOUNT = 0.2;
-    private static final double PI_MULTIPLE = 2.0;
-    private static final long BOT_THINK_TIME_MS = 250L;
-    private static final long BOT_MOVE_DELAY_MS = 3500L;
-    private static final long NANOS_PER_MILLIS = 1_000_000L;
 
     private final Model model;
     private final Random rng = new Random();

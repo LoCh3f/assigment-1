@@ -9,6 +9,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static it.unibo.sampleapp.controller.concurrent.GameLoopConstants.TICK_MS;
+import static it.unibo.sampleapp.controller.concurrent.GameLoopConstants.TICK_S;
+
 /**
  * The heartbeat of the game using task-based approach with Executor Framework.
  *
@@ -18,10 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Uses ScheduledExecutorService for timing.
  */
 public final class GameLoopTask implements Runnable {
-
-    private static final long TARGET_FPS = 60;
-    private static final long TICK_MS = 1000 / TARGET_FPS;
-    private static final double TICK_S = TICK_MS / 1000.0;
 
     private final Model model;
     @SuppressFBWarnings(

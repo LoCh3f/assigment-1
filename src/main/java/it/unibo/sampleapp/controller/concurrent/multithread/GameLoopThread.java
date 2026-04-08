@@ -4,6 +4,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.view.View;
 
+import static it.unibo.sampleapp.controller.concurrent.GameLoopConstants.TICK_MS;
+import static it.unibo.sampleapp.controller.concurrent.GameLoopConstants.TICK_S;
+
 /**
  * The heartbeat of the game.
  *
@@ -13,10 +16,6 @@ import it.unibo.sampleapp.view.View;
  * Uses sleep-based timing — good enough for this use case.
  */
 public final class GameLoopThread extends Thread {
-
-    private static final long TARGET_FPS = 60;
-    private static final long TICK_MS = 1000 / TARGET_FPS;
-    private static final double TICK_S = TICK_MS / 1000.0;
 
     private final Model model;
     @SuppressFBWarnings(
