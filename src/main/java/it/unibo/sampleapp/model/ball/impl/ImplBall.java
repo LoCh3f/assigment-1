@@ -94,6 +94,7 @@ public final class ImplBall implements Ball {
      *
      * @param otherType the type of ball that collided with this one
      */
+    @Override
     public void recordCollision(final Type otherType) {
         this.lastCollidedWithType = otherType;
     }
@@ -103,6 +104,7 @@ public final class ImplBall implements Ball {
      *
      * @return the type of the last colliding ball, or null if no collision recorded
      */
+    @Override
     public Type getLastCollidedWithType() {
         return lastCollidedWithType;
     }

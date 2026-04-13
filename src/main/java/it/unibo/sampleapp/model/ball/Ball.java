@@ -69,4 +69,18 @@ public interface Ball {
      */
     Type getType();
 
+    /**
+     * Records the type of the last ball that collided with this ball.
+     *
+     * @param otherType the type of the colliding ball
+     */
+    void recordCollision(Type otherType);
+
+    /**
+     * Gets the type of the last ball that collided with this ball.
+     *
+     * @return the type of the last colliding ball, or {@code null} if none
+     */
+    Type getLastCollidedWithType();
+
 }

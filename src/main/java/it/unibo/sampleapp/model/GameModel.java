@@ -215,10 +215,7 @@ public final class GameModel implements Model {
      * @return the type of the last colliding ball, or null if tracking is unavailable
      */
     private Ball.Type getLastCollisionType(final Ball b) {
-        if (b instanceof ImplBall implBall) {
-            return implBall.getLastCollidedWithType();
-        }
-        return null;
+        return b.getLastCollidedWithType();
     }
 
     /**

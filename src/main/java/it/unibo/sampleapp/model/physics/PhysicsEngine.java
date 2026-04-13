@@ -273,15 +273,12 @@ public class PhysicsEngine {
         a.setVelocity(velocityaftera);
         b.setVelocity(velocityafterb);
 
-        // Record collision for scoring purposes:
-        // If one ball is a player ball and the other is small, record the collision on the small ball
-        if (b instanceof it.unibo.sampleapp.model.ball.impl.ImplBall implB
-                && a.getType() != Ball.Type.SMALL) {
-            implB.recordCollision(a.getType());
+        // Record collisions only on small balls, with the type of the impacting player ball.
+        if (a.getType() == Ball.Type.SMALL && b.getType() != Ball.Type.SMALL) {
+            a.recordCollision(b.getType());
         }
-        if (a instanceof it.unibo.sampleapp.model.ball.impl.ImplBall implA
-                && b.getType() != Ball.Type.SMALL) {
-            implA.recordCollision(b.getType());
+        if (b.getType() == Ball.Type.SMALL && a.getType() != Ball.Type.SMALL) {
+            b.recordCollision(a.getType());
         }
     }
 
