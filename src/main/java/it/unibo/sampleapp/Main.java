@@ -12,8 +12,8 @@ import it.unibo.sampleapp.view.ViewImpl;
  */
 public final class Main {
 
-    private static final int BOARD_W = 900;
-    private static final int BOARD_H = 600;
+    private static final int BOARD_W = 1920;
+    private static final int BOARD_H = 1080;
     private static final int NUM_SMALL_BALLS = 500;
 
     /**
