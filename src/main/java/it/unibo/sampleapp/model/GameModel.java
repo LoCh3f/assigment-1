@@ -42,6 +42,7 @@ public final class GameModel implements Model {
     private final Ball botBall;
     private final int boardWidth;
     private final int boardHeight;
+    private final int totalSmallBalls;
 
     private int humanScore;
     private int botScore;
@@ -59,6 +60,7 @@ public final class GameModel implements Model {
     public GameModel(final int boardWidth, final int boardHeight, final int numSmallBalls) {
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
+        this.totalSmallBalls = Math.max(0, numSmallBalls);
         this.physicsEngine = new PhysicsEngine();
         this.balls = new ArrayList<>();
         this.holes = buildHoles();
@@ -79,7 +81,7 @@ public final class GameModel implements Model {
 
         balls.add(humanBall);
         balls.add(botBall);
-        spawnSmallBalls(numSmallBalls);
+        spawnSmallBalls(totalSmallBalls);
 
         this.humanScore = 0;
         this.botScore = 0;
@@ -191,12 +193,12 @@ public final class GameModel implements Model {
                     // Only score if the small ball was directly hit by a player ball
                     if (lastCollidedWith == Ball.Type.HUMAN) {
                         humanScore++;
-                        if (humanScore > (balls.size() - 2) / 2) {
+                        if (humanScore > totalSmallBalls / 2) {
                             status = GameStatus.HUMAN_WINS;
                         }
                     } else if (lastCollidedWith == Ball.Type.BOT) {
                         botScore++;
-                        if (botScore > (balls.size() - 2) / 2) {
+                        if (botScore > totalSmallBalls / 2) {
                             status = GameStatus.BOT_WINS;
                         }
                     }
