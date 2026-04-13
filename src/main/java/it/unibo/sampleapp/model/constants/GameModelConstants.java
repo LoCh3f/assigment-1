@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.model.costants;
+package it.unibo.sampleapp.model.constants;
 
 import it.unibo.sampleapp.model.GameModel;
 

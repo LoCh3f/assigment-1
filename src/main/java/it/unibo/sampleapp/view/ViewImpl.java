@@ -19,11 +19,11 @@ import it.unibo.sampleapp.view.board.BoardPanel;
 
 import java.io.Serial;
 
-import static it.unibo.sampleapp.view.costants.ViewConstants.COLOR_BOARD;
-import static it.unibo.sampleapp.view.costants.ViewConstants.IMPULSE_MAGNITUDE;
-import static it.unibo.sampleapp.view.costants.ViewConstants.MAX_POWER_MULTIPLIER;
-import static it.unibo.sampleapp.view.costants.ViewConstants.MAX_POWER_TIME;
-import static it.unibo.sampleapp.view.costants.ViewConstants.MIN_POWER_MULTIPLIER;
+import static it.unibo.sampleapp.view.constants.ViewConstants.COLOR_BOARD;
+import static it.unibo.sampleapp.view.constants.ViewConstants.IMPULSE_MAGNITUDE;
+import static it.unibo.sampleapp.view.constants.ViewConstants.MAX_POWER_MULTIPLIER;
+import static it.unibo.sampleapp.view.constants.ViewConstants.MAX_POWER_TIME;
+import static it.unibo.sampleapp.view.constants.ViewConstants.MIN_POWER_MULTIPLIER;
 
 /**
  * The View layer — purely passive.

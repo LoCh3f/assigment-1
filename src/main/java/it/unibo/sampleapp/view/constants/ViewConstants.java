@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.view.costants;
+package it.unibo.sampleapp.view.constants;
 
 import java.awt.Color;
 
