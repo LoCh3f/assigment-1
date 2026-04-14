@@ -3,10 +3,10 @@ package it.unibo.sampleapp.physics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import it.unibo.sampleapp.model.ball.Ball;
-import it.unibo.sampleapp.model.ball.impl.ImplBall;
-import it.unibo.sampleapp.model.hole.Hole;
-import it.unibo.sampleapp.model.hole.impl.HoleImpl;
+import it.unibo.sampleapp.model.domain.ball.Ball;
+import it.unibo.sampleapp.model.domain.ball.impl.ImplBall;
+import it.unibo.sampleapp.model.domain.hole.Hole;
+import it.unibo.sampleapp.model.domain.hole.impl.HoleImpl;
 import it.unibo.sampleapp.util.Vector2D;
 import it.unibo.sampleapp.model.physics.PhysicsEngine;
 import org.junit.jupiter.api.Test;
