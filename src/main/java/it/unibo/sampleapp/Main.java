@@ -1,6 +1,8 @@
 package it.unibo.sampleapp;
 
-import it.unibo.sampleapp.controller.ControllerImpl;
+import it.unibo.sampleapp.controller.AbstractController;
+import it.unibo.sampleapp.controller.concurrent.multithread.MultithreadController;
+import it.unibo.sampleapp.controller.concurrent.taskbased.TaskBasedController;
 import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.model.GameModel;
 import it.unibo.sampleapp.view.View;
@@ -41,7 +43,9 @@ public final class Main {
 
         final Model model = new GameModel(BOARD_W, BOARD_H, NUM_SMALL_BALLS);
 
-        final ControllerImpl controller = new ControllerImpl(model, mode);
+        final AbstractController controller = mode == ConcurrencyMode.TASKBASED
+                ? new TaskBasedController(model)
+                : new MultithreadController(model);
 
         final View view = new ViewImpl(BOARD_W, BOARD_H, controller);
 
