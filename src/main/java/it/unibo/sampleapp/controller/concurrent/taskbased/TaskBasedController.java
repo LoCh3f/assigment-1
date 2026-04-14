@@ -3,6 +3,7 @@ package it.unibo.sampleapp.controller.concurrent.taskbased;
 import it.unibo.sampleapp.controller.AbstractController;
 import it.unibo.sampleapp.controller.concurrent.bot.BotMoveService;
 import it.unibo.sampleapp.model.Model;
+import it.unibo.sampleapp.util.FpsCounter;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -10,7 +11,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static it.unibo.sampleapp.controller.concurrent.bot.BotAIConstants.BOT_MOVE_DELAY_MS;
 import static it.unibo.sampleapp.controller.concurrent.bot.BotAIConstants.BOT_THINK_TIME_MS;
@@ -26,14 +26,12 @@ public final class TaskBasedController extends AbstractController {
 
     private final BotMoveService botMoveService = new BotMoveService();
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicInteger framesThisSecond = new AtomicInteger(0);
-    private final AtomicInteger currentFps = new AtomicInteger(0);
+    private final FpsCounter fpsCounter = new FpsCounter();
 
     private ScheduledExecutorService gameLoopExecutor;
     private ScheduledExecutorService botExecutor;
     private ScheduledFuture<?> gameLoopFuture;
     private ScheduledFuture<?> botFuture;
-    private volatile long lastFpsTimeMs;
 
     /**
      * @param model the game model to control
@@ -47,9 +45,7 @@ public final class TaskBasedController extends AbstractController {
         if (!running.compareAndSet(false, true)) {
             return;
         }
-        framesThisSecond.set(0);
-        currentFps.set(0);
-        lastFpsTimeMs = System.currentTimeMillis();
+        fpsCounter.reset(System.currentTimeMillis());
 
         gameLoopExecutor = Executors.newSingleThreadScheduledExecutor();
         botExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -93,7 +89,7 @@ public final class TaskBasedController extends AbstractController {
 
     @Override
     public int getCurrentFps() {
-        return currentFps.get();
+        return fpsCounter.getCurrentFps();
     }
 
     private void runGameLoopStep() {
@@ -109,12 +105,7 @@ public final class TaskBasedController extends AbstractController {
     }
 
     private void updateFpsCounters() {
-        framesThisSecond.incrementAndGet();
-        final long now = System.currentTimeMillis();
-        if (now - lastFpsTimeMs >= 1000) {
-            currentFps.set(framesThisSecond.getAndSet(0));
-            lastFpsTimeMs = now;
-        }
+        fpsCounter.tick(System.currentTimeMillis());
     }
 
     private void cancelFuture(final ScheduledFuture<?> future) {

@@ -3,6 +3,7 @@ package it.unibo.sampleapp.controller.concurrent.multithread;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.view.View;
+import it.unibo.sampleapp.util.FpsCounter;
 
 import static it.unibo.sampleapp.controller.concurrent.GameLoopConstants.TICK_MS;
 import static it.unibo.sampleapp.controller.concurrent.GameLoopConstants.TICK_S;
@@ -23,9 +24,7 @@ public final class GameLoopThread extends Thread {
             justification = "View is provided by the application wiring and only used for update callbacks"
     )
     private final View view;
-    private long framesThisSecond;
-    private long lastFpsTimeMs;
-    private volatile int currentFps;
+    private final FpsCounter fpsCounter = new FpsCounter();
 
     /**
      * Constructs a new GameLoopThread with the given model and view.
@@ -37,9 +36,6 @@ public final class GameLoopThread extends Thread {
         super("game-loop");
         this.model = model;
         this.view = view;
-        this.framesThisSecond = 0;
-        this.lastFpsTimeMs = System.currentTimeMillis();
-        this.currentFps = 0;
         setDaemon(true);   // dies when main thread dies
     }
 
@@ -56,13 +52,7 @@ public final class GameLoopThread extends Thread {
 
             // 2. Snapshot + push to view (lock held only during snapshot copy)
             view.update(model.getSnapshot());
-            framesThisSecond++;
-            final long now = System.currentTimeMillis();
-            if (now - lastFpsTimeMs >= 1000) {
-                currentFps = (int) framesThisSecond;
-                framesThisSecond = 0;
-                lastFpsTimeMs = now;
-            }
+            fpsCounter.tick(System.currentTimeMillis());
 
             // 3. Sleep for the remainder of the tick budget
             final long elapsed = System.currentTimeMillis() - startMs;
@@ -91,7 +81,7 @@ public final class GameLoopThread extends Thread {
      * @return the current FPS value
      */
     public int getCurrentFps() {
-        return currentFps;
+        return fpsCounter.getCurrentFps();
     }
 
 }

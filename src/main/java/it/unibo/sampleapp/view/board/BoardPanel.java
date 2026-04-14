@@ -4,6 +4,7 @@ import it.unibo.sampleapp.model.domain.ball.Ball;
 import it.unibo.sampleapp.model.domain.hole.Hole;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
+import it.unibo.sampleapp.util.FpsCounter;
 
 import javax.swing.JPanel;
 import java.awt.Color;
@@ -51,6 +52,7 @@ public final class BoardPanel extends JPanel {
     private String gameOverMessage;
     private transient volatile GameSnapshot currentSnapshot;
     private transient volatile int currentFps;
+    private final transient FpsCounter renderFpsCounter = new FpsCounter();
 
     private transient volatile boolean isAiming;
     private transient volatile Point2D.Double aimStartPoint;
@@ -103,6 +105,8 @@ public final class BoardPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
 
+        final int renderFps = renderFpsCounter.tick(System.currentTimeMillis());
+
         final GameSnapshot snap = currentSnapshot;
         if (snap == null) {
             return;
@@ -110,7 +114,7 @@ public final class BoardPanel extends JPanel {
 
         drawHoles(g2, snap);
         drawBalls(g2, snap);
-        drawHUD(g2, snap);
+        drawHUD(g2, snap, renderFps);
 
         if (gameOverMessage != null) {
             drawGameOverOverlay(g2, gameOverMessage);
@@ -153,7 +157,7 @@ public final class BoardPanel extends JPanel {
         }
     }
 
-    private void drawHUD(final Graphics2D g2, final GameSnapshot snap) {
+    private void drawHUD(final Graphics2D g2, final GameSnapshot snap, final int renderFps) {
         final int panelWidth = getWidth();
         final int panelHeight = getHeight();
         g2.setFont(new Font(FONT_NAME, Font.BOLD, FONT_SIZE_HUD));
@@ -161,6 +165,7 @@ public final class BoardPanel extends JPanel {
 
         final String humanLabel = "You: " + snap.humanScore();
         final String botLabel = "Bot: " + snap.botScore();
+        final String fpsLabel = "Upd FPS: " + currentFps + " | Rend FPS: " + renderFps;
 
         final int hudH = fm.getHeight() + PADDING_HUD;
 
@@ -179,8 +184,6 @@ public final class BoardPanel extends JPanel {
         g2.drawString(botLabel, panelWidth - botW - 8 + PADDING_HUD / 2,
                 panelHeight - 8 - PADDING_HUD / 2 + 2);
 
-        // Draw FPS indicator
-        final String fpsLabel = "FPS: " + currentFps;
         final int textWidth = fm.stringWidth(fpsLabel);
         final int textHeight = fm.getHeight();
         final int padding = 12;
