@@ -1,6 +1,6 @@
 package it.unibo.sampleapp.model.physics.collision;
 
-import it.unibo.sampleapp.model.ball.Ball;
+import it.unibo.sampleapp.model.domain.ball.Ball;
 
 import java.util.List;
 
