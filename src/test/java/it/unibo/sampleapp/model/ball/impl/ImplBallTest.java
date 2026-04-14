@@ -1,6 +1,7 @@
 package it.unibo.sampleapp.model.ball.impl;
 
-import it.unibo.sampleapp.model.ball.Ball;
+import it.unibo.sampleapp.model.domain.ball.Ball;
+import it.unibo.sampleapp.model.domain.ball.impl.ImplBall;
 import it.unibo.sampleapp.util.Vector2D;
 import org.junit.jupiter.api.Test;
 
