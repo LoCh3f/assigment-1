@@ -3,8 +3,9 @@ package it.unibo.sampleapp;
 import it.unibo.sampleapp.controller.AbstractController;
 import it.unibo.sampleapp.controller.concurrent.multithread.MultithreadController;
 import it.unibo.sampleapp.controller.concurrent.taskbased.TaskBasedController;
-import it.unibo.sampleapp.model.Model;
 import it.unibo.sampleapp.model.GameModel;
+import it.unibo.sampleapp.model.MultithreadGameModel;
+import it.unibo.sampleapp.model.TaskBasedGameModel;
 import it.unibo.sampleapp.view.View;
 import it.unibo.sampleapp.view.ViewImpl;
 
@@ -16,7 +17,7 @@ public final class Main {
 
     private static final int BOARD_W = 1920;
     private static final int BOARD_H = 1080;
-    private static final int NUM_SMALL_BALLS = 500;
+    private static final int NUM_SMALL_BALLS = 4_500;
 
     /**
      * Concurrency mode enum.
@@ -41,7 +42,9 @@ public final class Main {
                 ? ConcurrencyMode.TASKBASED
                 : ConcurrencyMode.MULTITHREAD;
 
-        final Model model = new GameModel(BOARD_W, BOARD_H, NUM_SMALL_BALLS);
+        final GameModel model = mode == ConcurrencyMode.TASKBASED
+                ? new TaskBasedGameModel(BOARD_W, BOARD_H, NUM_SMALL_BALLS)
+                : new MultithreadGameModel(BOARD_W, BOARD_H, NUM_SMALL_BALLS);
 
         final AbstractController controller = mode == ConcurrencyMode.TASKBASED
                 ? new TaskBasedController(model)
