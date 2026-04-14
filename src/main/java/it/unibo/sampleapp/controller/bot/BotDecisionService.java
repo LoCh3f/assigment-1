@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.controller.concurrent;
+package it.unibo.sampleapp.controller.bot;
 
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
@@ -8,10 +8,10 @@ import it.unibo.sampleapp.util.Vector2D;
 import java.util.List;
 import java.util.Random;
 
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.DEFENSIVE_NOISE_AMOUNT;
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.MIN_DISTANCE_TO_CONSIDER;
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.PI_MULTIPLE;
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.TARGET_NOISE_AMOUNT;
+import static it.unibo.sampleapp.controller.bot.BotAIConstants.DEFENSIVE_NOISE_AMOUNT;
+import static it.unibo.sampleapp.controller.bot.BotAIConstants.MIN_DISTANCE_TO_CONSIDER;
+import static it.unibo.sampleapp.controller.bot.BotAIConstants.PI_MULTIPLE;
+import static it.unibo.sampleapp.controller.bot.BotAIConstants.TARGET_NOISE_AMOUNT;
 
 /**
  * Shared bot decision logic reused by thread-based and task-based bot runners.

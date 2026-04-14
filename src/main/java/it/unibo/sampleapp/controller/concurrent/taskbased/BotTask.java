@@ -1,11 +1,11 @@
 package it.unibo.sampleapp.controller.concurrent.taskbased;
 
-import it.unibo.sampleapp.controller.concurrent.BotMoveService;
+import it.unibo.sampleapp.controller.bot.BotMoveService;
 import it.unibo.sampleapp.model.Model;
 
 import java.util.concurrent.ExecutorService;
 
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.BOT_THINK_TIME_MS;
+import static it.unibo.sampleapp.controller.bot.BotAIConstants.BOT_THINK_TIME_MS;
 
 /**
  * The bot agent using task-based approach with Executor Framework.
