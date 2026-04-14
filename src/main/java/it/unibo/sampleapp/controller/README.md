@@ -8,9 +8,9 @@ It is the bridge between view events and model operations.
 - `Controller`: controller API consumed by the view.
 - `AbstractController`: shared input handling and game-over watcher.
 - `MultithreadController`: lifecycle orchestration using `GameLoopThread` and `BotThread`.
-- `TaskBasedController`: lifecycle orchestration using `GameLoopTask` and `BotTask`.
+- `TaskBasedController`: lifecycle orchestration using `ScheduledExecutorService`.
 - `concurrent/multithread/*`: thread-based loop and bot workers.
-- `concurrent/taskbased/*`: executor-based loop and bot workers.
+- `concurrent/taskbased/*`: executor-based controller runtime.
 
 ## Organization
 - **Input boundary**: `ViewImpl` calls `Controller` methods (`onDirectionInput`, `onShoot`, `onAim`).

@@ -10,8 +10,8 @@ import it.unibo.sampleapp.view.View;
 import it.unibo.sampleapp.view.ViewImpl;
 
 /**
- * Entry point. Wires Model → Controller → View and starts the game.
- * This is the only class that knows all three concrete types.
+ * Entry point. Wires the selected model, controller, and view implementation and starts the game.
+ * This class is the composition root for the runtime configuration.
  */
 public final class Main {
 
@@ -20,7 +20,7 @@ public final class Main {
     private static final int NUM_SMALL_BALLS = 4_500;
 
     /**
-     * Concurrency mode enum.
+     * Supported runtime concurrency modes.
      */
     public enum ConcurrencyMode {
         MULTITHREAD, TASKBASED

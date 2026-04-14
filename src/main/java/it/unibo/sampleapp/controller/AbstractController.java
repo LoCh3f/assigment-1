@@ -10,7 +10,7 @@ import it.unibo.sampleapp.view.View;
 import javax.swing.SwingUtilities;
 
 /**
- * Base controller with shared input handling and game-over watching.
+ * Base controller with shared input routing and game-over watching.
  */
 public abstract class AbstractController implements Controller {
 
@@ -79,7 +79,7 @@ public abstract class AbstractController implements Controller {
     }
 
     /**
-     * Starts the shared watcher that listens for game-over and notifies the view.
+     * Starts the shared watcher that waits for game over and notifies the view.
      */
     protected final void startGameOverWatcher() {
         Thread.ofPlatform().name("game-over-watcher").start(this::watchForGameOver);
