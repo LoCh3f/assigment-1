@@ -26,11 +26,11 @@ class PhysicsEngineTest {
     private static final int BALL_SMALL_POS_X = 50;
     private static final int BALL_SMALL_POS_Y = 300;
     private static final int BALL_MEDIUM_POS_X = 80;
-    private static final int BALL_RADIUS = 5;
+    private static final int BALL_RADIUS = 2;
     private static final int HOLE_CENTER_X = 400;
     private static final int HOLE_CENTER_Y = 300;
     private static final int HOLE_RADIUS = 20;
-    private static final int LEFT_WALL_POS_X = 3;
+    private static final int LEFT_WALL_POS_X = 2;
     private static final double POSITIVE_VEL = 50.0;
     private static final double NEGATIVE_VEL = -50.0;
     private static final double INITIAL_VEL = 10.0;

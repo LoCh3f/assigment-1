@@ -4,6 +4,8 @@ import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.ball.impl.ImplBall;
 import it.unibo.sampleapp.model.hole.Hole;
 import it.unibo.sampleapp.model.hole.impl.HoleImpl;
+import it.unibo.sampleapp.model.physics.concurrent.CollisionBag;
+import it.unibo.sampleapp.model.physics.concurrent.CollisionWorker;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
 import it.unibo.sampleapp.model.status.GameStatus;
@@ -19,7 +21,9 @@ import static it.unibo.sampleapp.model.constants.GameModelConstants.HOLE_RADIUS;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.HUMAN_BALL_X_RATIO;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.HUMAN_BALL_Y_RATIO;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.IMPULSE_STRENGTH;
+import static it.unibo.sampleapp.model.constants.GameModelConstants.MAX_SPAWN_ATTEMPTS_PER_BALL;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.PLAYER_BALL_RADIUS;
+import static it.unibo.sampleapp.model.constants.GameModelConstants.SPAWN_CLEARANCE;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.SMALL_BALL_RADIUS;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.TOP_HALF_RATIO;
 
@@ -43,6 +47,7 @@ public final class GameModel implements Model {
     private final int boardWidth;
     private final int boardHeight;
     private final int totalSmallBalls;
+    private final CollisionBag bag;
 
     private int humanScore;
     private int botScore;
@@ -61,9 +66,14 @@ public final class GameModel implements Model {
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
         this.totalSmallBalls = Math.max(0, numSmallBalls);
-        this.physicsEngine = new PhysicsEngine();
         this.balls = new ArrayList<>();
         this.holes = buildHoles();
+        this.bag = new CollisionBag();
+        this.physicsEngine = new PhysicsEngine(this.bag);
+        final int nWorkers = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
+        for (int i = 0; i < nWorkers; i++) {
+            new CollisionWorker(i, bag).start();
+        }
 
         // Place human ball (bottom-left area) and bot ball (bottom-right area)
         this.humanBall = new ImplBall(
@@ -254,14 +264,31 @@ public final class GameModel implements Model {
 
     private void spawnSmallBalls(final int count) {
         for (int i = 0; i < count; i++) {
-            final double x = SMALL_BALL_RADIUS + Math.random() * (boardWidth - 2 * SMALL_BALL_RADIUS);
-            final double y = SMALL_BALL_RADIUS + Math.random() * boardHeight * TOP_HALF_RATIO;
-            balls.add(new ImplBall(
-                    new Vector2D(x, y),
-                    new Vector2D(0, 0),
-                    SMALL_BALL_RADIUS,
-                    Ball.Type.SMALL
-            ));
+            boolean placed = false;
+            for (int attempt = 0; attempt < MAX_SPAWN_ATTEMPTS_PER_BALL && !placed; attempt++) {
+                final double x = SMALL_BALL_RADIUS + Math.random() * (boardWidth - 2 * SMALL_BALL_RADIUS);
+                final double y = SMALL_BALL_RADIUS + Math.random() * boardHeight * TOP_HALF_RATIO;
+                final Vector2D candidate = new Vector2D(x, y);
+                if (isPositionFree(candidate, SMALL_BALL_RADIUS)) {
+                    balls.add(new ImplBall(candidate, new Vector2D(0, 0), SMALL_BALL_RADIUS, Ball.Type.SMALL));
+                    placed = true;
+                }
+            }
+            if (!placed) {
+                final double x = SMALL_BALL_RADIUS + Math.random() * (boardWidth - 2 * SMALL_BALL_RADIUS);
+                final double y = SMALL_BALL_RADIUS + Math.random() * boardHeight * TOP_HALF_RATIO;
+                balls.add(new ImplBall(new Vector2D(x, y), new Vector2D(0, 0), SMALL_BALL_RADIUS, Ball.Type.SMALL));
+            }
         }
+    }
+
+    private boolean isPositionFree(final Vector2D candidate, final double radius) {
+        for (final Ball existing : balls) {
+            final double minDistance = radius + existing.getRadius() + SPAWN_CLEARANCE;
+            if (existing.getPosition().distance(candidate) < minDistance) {
+                return false;
+            }
+        }
+        return true;
     }
 }

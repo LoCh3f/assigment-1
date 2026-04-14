@@ -1,22 +1,13 @@
 package it.unibo.sampleapp.controller.concurrent.multithread;
 
+import it.unibo.sampleapp.controller.concurrent.BotMoveService;
 import it.unibo.sampleapp.model.Model;
-import it.unibo.sampleapp.model.ball.Ball;
-import it.unibo.sampleapp.model.snapshot.BallSnapshot;
-import it.unibo.sampleapp.model.snapshot.GameSnapshot;
-import it.unibo.sampleapp.util.Vector2D;
 
-import java.util.List;
-import java.util.Random;
 import java.util.concurrent.locks.LockSupport;
 
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.DEFENSIVE_NOISE_AMOUNT;
 import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.BOT_MOVE_DELAY_MS;
 import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.BOT_THINK_TIME_MS;
 import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.NANOS_PER_MILLIS;
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.MIN_DISTANCE_TO_CONSIDER;
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.PI_MULTIPLE;
-import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.TARGET_NOISE_AMOUNT;
 
 /**
  * The bot agent. Runs asynchronously and independently of the game loop.
@@ -26,7 +17,7 @@ import static it.unibo.sampleapp.controller.concurrent.BotAIConstants.TARGET_NOI
 public final class BotThread extends Thread {
 
     private final Model model;
-    private final Random rng = new Random();
+    private final BotMoveService moveService;
 
     /**
      * Constructs a new BotThread with the given model.
@@ -36,6 +27,7 @@ public final class BotThread extends Thread {
     public BotThread(final Model model) {
         super("bot-agent");
         this.model = model;
+        this.moveService = new BotMoveService();
         setDaemon(true);
     }
 
@@ -46,8 +38,8 @@ public final class BotThread extends Thread {
     @Override
     public void run() {
         while (!isInterrupted()) {
-            final GameSnapshot snapshot = model.getSnapshot();
-            final Vector2D direction = findBestMoveDirection(snapshot);
+            final var snapshot = model.getSnapshot();
+            final var direction = moveService.decideMove(snapshot);
             model.applyImpulseToBot(direction);
             try {
                 sleep(BOT_MOVE_DELAY_MS);
@@ -60,99 +52,6 @@ public final class BotThread extends Thread {
                 break;
             }
         }
-    }
-
-    /**
-     * Analyzes the current board state and determines the best direction to move.
-     * Prioritizes small balls that are reachable, otherwise uses random direction.
-     *
-     * @param snapshot the current game state
-     * @return a normalized direction vector for the next move
-     */
-    private Vector2D findBestMoveDirection(final GameSnapshot snapshot) {
-        final List<BallSnapshot> balls = snapshot.balls();
-
-        // Find the bot ball (red/BOT type)
-        BallSnapshot botBall = null;
-        for (final BallSnapshot ball : balls) {
-            if (ball.type() == Ball.Type.BOT) {
-                botBall = ball;
-                break;
-            }
-        }
-
-        if (botBall == null) {
-            return randomDirection();
-        }
-
-        // Find the closest small ball as a target
-        BallSnapshot closestSmallBall = null;
-        double minDistance = Double.MAX_VALUE;
-
-        for (final BallSnapshot ball : balls) {
-            if (ball.type() == Ball.Type.SMALL) {
-                final double distance = botBall.position().distance(ball.position());
-                if (distance < minDistance && distance >= MIN_DISTANCE_TO_CONSIDER) {
-                    minDistance = distance;
-                    closestSmallBall = ball;
-                }
-            }
-        }
-
-        // If we found a close small ball, aim toward it
-        if (closestSmallBall != null) {
-            final Vector2D directionToTarget = closestSmallBall.position()
-                    .subtract(botBall.position());
-            // Add slight randomness to avoid being too predictable
-            return addNoise(directionToTarget, TARGET_NOISE_AMOUNT);
-        }
-
-        // Otherwise, aim away from the human ball to keep distance
-        BallSnapshot humanBall = null;
-        for (final BallSnapshot ball : balls) {
-            if (ball.type() == Ball.Type.HUMAN) {
-                humanBall = ball;
-                break;
-            }
-        }
-
-        if (humanBall != null) {
-            final Vector2D awayFromHuman = botBall.position()
-                    .subtract(humanBall.position());
-            return addNoise(awayFromHuman, DEFENSIVE_NOISE_AMOUNT);
-        }
-
-        // Fallback: random direction
-        return randomDirection();
-    }
-
-    /**
-     * Generates a random direction vector.
-     *
-     * @return a normalized random direction
-     */
-    private Vector2D randomDirection() {
-        final double angle = rng.nextDouble() * PI_MULTIPLE * Math.PI;
-        return new Vector2D(Math.cos(angle), Math.sin(angle));
-    }
-
-    /**
-     * Adds random noise to a direction vector to make movements less predictable.
-     *
-     * @param direction the base direction
-     * @param noiseAmount the amount of noise (0.0 to 1.0)
-     * @return the direction with added noise
-     */
-    private Vector2D addNoise(final Vector2D direction, final double noiseAmount) {
-        final double randomAngle = (rng.nextDouble() - 0.5) * Math.PI * noiseAmount;
-        final double cos = Math.cos(randomAngle);
-        final double sin = Math.sin(randomAngle);
-
-        // Rotate the direction vector by the random angle
-        final double rotatedX = direction.x() * cos - direction.y() * sin;
-        final double rotatedY = direction.x() * sin + direction.y() * cos;
-
-        return new Vector2D(rotatedX, rotatedY).normalize();
     }
 
     /**

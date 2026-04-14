@@ -2,24 +2,42 @@ package it.unibo.sampleapp.model.physics;
 
 import it.unibo.sampleapp.model.ball.Ball;
 import it.unibo.sampleapp.model.hole.Hole;
+import it.unibo.sampleapp.model.physics.concurrent.CollisionBag;
+import it.unibo.sampleapp.model.physics.collision.CollisionResolver;
+import it.unibo.sampleapp.model.physics.collision.ConcurrentCollisionResolver;
+import it.unibo.sampleapp.model.physics.collision.SequentialCollisionResolver;
 import it.unibo.sampleapp.util.Vector2D;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Stateless physics engine. All methods are pure functions — no fields,
  * no threading. Safe to call from any thread as long as callers
  * synchronize access to the ball list externally (done by GameModel).
  */
-public class PhysicsEngine {
-    private static final double CELL_SIZE = 40.0;
+public final class PhysicsEngine {
     private static final double FRICTION_COEFFICIENT = 0.1;
     private static final double MIN_SPEED = 0.1;
-    private static final double EPSILON = 0.01;
-    private static final long LOWER_32_MASK = 0xffffffffL;
+
+    private final CollisionResolver collisionResolver;
+
+    /**
+     * Creates a physics engine with sequential collision resolution.
+     */
+    public PhysicsEngine() {
+        this.collisionResolver = new SequentialCollisionResolver();
+    }
+
+    /**
+     * Creates a physics engine with worker-backed collision resolution.
+     *
+     * @param bag shared monitor used by collision workers
+     */
+    public PhysicsEngine(final CollisionBag bag) {
+        final CollisionResolver sequentialResolver = new SequentialCollisionResolver();
+        this.collisionResolver = new ConcurrentCollisionResolver(bag, sequentialResolver);
+    }
 
     /**
      * Main simulation step — call this every tick from the game loop to advance physics.
@@ -46,7 +64,7 @@ public class PhysicsEngine {
         moveBalls(balls, dt);
         applyFriction(balls, dt);
         handleBorderCollisions(balls, boardW, boardH);
-        handleBallCollisions(balls);
+        collisionResolver.resolve(balls);
         return checkHoles(balls, holes);
     }
 
@@ -140,149 +158,6 @@ public class PhysicsEngine {
     }
 
     /**
-     * Detects and resolves all ball-to-ball collisions.
-     *
-     * <p>
-     * Uses a uniform spatial grid as a broad-phase optimization.
-     * Balls are bucketed by cell, then narrow-phase collision checks are executed only:
-     * <ul>
-     *   <li>within the same cell (pairwise i &lt; j)</li>
-     *   <li>between a cell and its 8 neighboring cells</li>
-     * </ul>
-     * This reduces unnecessary pair checks compared to full all-vs-all scanning,
-     * while preserving the same collision response semantics.
-     *
-     * @param balls the list of all active balls
-     */
-    private void handleBallCollisions(final List<Ball> balls) {
-        // Build grid: key = (cx, cy) packed into long, value = list of balls
-        final Map<Long, List<Ball>> grid = new HashMap<>();
-
-        for (final Ball b : balls) {
-            final int cx = (int) (b.getPosition().x() / CELL_SIZE);
-            final int cy = (int) (b.getPosition().y() / CELL_SIZE);
-            final long key = (((long) cx) << 32) | (cy & LOWER_32_MASK);
-            grid.computeIfAbsent(key, k -> new ArrayList<>()).add(b);
-        }
-
-        // For each cell, test collisions inside it and neighbouring cells
-        for (final Map.Entry<Long, List<Ball>> entry : grid.entrySet()) {
-            final long key = entry.getKey();
-            final int cx = (int) (key >> 32);
-            final int cy = (int) key;
-
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    final long neighbourKey = (((long) (cx + dx)) << 32) | ((cy + dy) & LOWER_32_MASK);
-                    final List<Ball> cellBalls = entry.getValue();
-                    final List<Ball> neighbourBalls = grid.get(neighbourKey);
-                    if (neighbourBalls == null) {
-                        continue;
-                    }
-
-                    // To avoid double work, use <= condition carefully
-                    if (neighbourKey == key) {
-                        // Same cell: classic i<j loop
-                        for (int i = 0; i < cellBalls.size(); i++) {
-                            for (int j = i + 1; j < cellBalls.size(); j++) {
-                                resolveCollision(cellBalls.get(i), cellBalls.get(j));
-                            }
-                        }
-                    } else if (neighbourKey > key) {
-                        // Different cell pairs: all combinations, but only once
-                        for (final Ball a : cellBalls) {
-                            for (final Ball b : neighbourBalls) {
-                                resolveCollision(a, b);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Resolves a collision between two balls using elastic collision physics.
-     *
-     * <p>
-     * This method performs two key steps:
-     * <ol>
-     *   <li><b>Positional Correction:</b> Separates overlapping balls along their collision normal
-     *       proportional to their mass ratios</li>
-     *   <li><b>Velocity Update:</b> Applies impulse-based response to exchange momentum based on
-     *       relative velocity, mass, and collision normal</li>
-     * </ol>
-     *
-     * <p>
-     * The collision is only resolved if the balls are approaching each other (relative velocity
-     * toward collision normal is positive). If they are separating, no action is taken.
-     *
-     * @param a the first ball involved in the collision
-     * @param b the second ball involved in the collision
-     */
-
-    private void resolveCollision(final Ball a, final Ball b) {
-        Vector2D posA = a.getPosition();
-        Vector2D posB = b.getPosition();
-
-        // Vector from A to B
-        final Vector2D delta = posB.subtract(posA);
-        final double dist = delta.magnitude();
-        final double minDist = a.getRadius() + b.getRadius();
-
-        // No collision
-        if (dist == 0 || dist >= minDist) {
-            return;
-        }
-
-        // --- 1. Positional correction (push apart) ---
-        final double overlap = minDist - dist + EPSILON;
-        final Vector2D n = delta.scale(1.0 / dist); // unit normal A→B
-
-        posA = posA.subtract(n.scale(overlap / 2));
-        posB = posB.add(n.scale(overlap / 2));
-        a.setPosition(posA);
-        b.setPosition(posB);
-
-        // --- 2. Velocity resolution in normal / tangent basis ---
-
-        final Vector2D vA = a.getVelocity();
-        final Vector2D vB = b.getVelocity();
-
-        // Tangent (perpendicular to n)
-        final Vector2D t = new Vector2D(-n.y(), n.x());
-
-        // Decompose velocities
-        final double normala = vA.dot(n);
-        final double tangenta = vA.dot(t);
-        final double normalb = vB.dot(n);
-        final double tangentb = vB.dot(t);
-
-        // If balls are separating along normal, don't resolve
-        if (normala - normalb <= 0) {
-            return;
-        }
-
-        // For equal mass: swap normal components, keep tangents [web:63][web:36]
-        final double normalaftera = normalb;
-        final double normalafterb = normala;
-
-        final Vector2D velocityaftera = n.scale(normalaftera).add(t.scale(tangenta));
-        final Vector2D velocityafterb = n.scale(normalafterb).add(t.scale(tangentb));
-
-        a.setVelocity(velocityaftera);
-        b.setVelocity(velocityafterb);
-
-        // Record collisions only on small balls, with the type of the impacting player ball.
-        if (a.getType() == Ball.Type.SMALL && b.getType() != Ball.Type.SMALL) {
-            a.recordCollision(b.getType());
-        }
-        if (b.getType() == Ball.Type.SMALL && a.getType() != Ball.Type.SMALL) {
-            b.recordCollision(a.getType());
-        }
-    }
-
-    /**
      * Detects and removes balls that have fallen into holes.
      *
      * <p>
@@ -309,4 +184,5 @@ public class PhysicsEngine {
         balls.removeAll(pocketed);
         return pocketed;
     }
+
 }
