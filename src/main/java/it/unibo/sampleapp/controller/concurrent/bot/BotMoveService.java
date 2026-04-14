@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.controller.bot;
+package it.unibo.sampleapp.controller.concurrent.bot;
 
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
 import it.unibo.sampleapp.util.Vector2D;

@@ -1,4 +1,4 @@
-package it.unibo.sampleapp.controller.bot;
+package it.unibo.sampleapp.controller.concurrent.bot;
 
 /**
  * Shared bot AI tuning constants used by both bot implementations.

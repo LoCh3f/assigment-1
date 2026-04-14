@@ -1,13 +1,13 @@
 package it.unibo.sampleapp.controller.concurrent.multithread;
 
-import it.unibo.sampleapp.controller.bot.BotMoveService;
+import it.unibo.sampleapp.controller.concurrent.bot.BotMoveService;
 import it.unibo.sampleapp.model.Model;
 
 import java.util.concurrent.locks.LockSupport;
 
-import static it.unibo.sampleapp.controller.bot.BotAIConstants.BOT_MOVE_DELAY_MS;
-import static it.unibo.sampleapp.controller.bot.BotAIConstants.BOT_THINK_TIME_MS;
-import static it.unibo.sampleapp.controller.bot.BotAIConstants.NANOS_PER_MILLIS;
+import static it.unibo.sampleapp.controller.concurrent.bot.BotAIConstants.BOT_MOVE_DELAY_MS;
+import static it.unibo.sampleapp.controller.concurrent.bot.BotAIConstants.BOT_THINK_TIME_MS;
+import static it.unibo.sampleapp.controller.concurrent.bot.BotAIConstants.NANOS_PER_MILLIS;
 
 /**
  * The bot agent. Runs asynchronously and independently of the game loop.
