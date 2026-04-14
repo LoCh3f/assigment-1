@@ -1,6 +1,6 @@
 package it.unibo.sampleapp.controller.concurrent.bot;
 
-import it.unibo.sampleapp.model.ball.Ball;
+import it.unibo.sampleapp.model.domain.ball.Ball;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
 import it.unibo.sampleapp.util.Vector2D;

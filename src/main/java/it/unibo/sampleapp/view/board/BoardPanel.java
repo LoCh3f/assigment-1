@@ -1,7 +1,7 @@
 package it.unibo.sampleapp.view.board;
 
-import it.unibo.sampleapp.model.ball.Ball;
-import it.unibo.sampleapp.model.hole.Hole;
+import it.unibo.sampleapp.model.domain.ball.Ball;
+import it.unibo.sampleapp.model.domain.hole.Hole;
 import it.unibo.sampleapp.model.snapshot.BallSnapshot;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
 

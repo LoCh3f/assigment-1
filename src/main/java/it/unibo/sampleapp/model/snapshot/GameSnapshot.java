@@ -1,7 +1,7 @@
 package it.unibo.sampleapp.model.snapshot;
 
 import it.unibo.sampleapp.model.status.GameStatus;
-import it.unibo.sampleapp.model.hole.Hole;
+import it.unibo.sampleapp.model.domain.hole.Hole;
 
 import java.util.Collections;
 import java.util.List;
