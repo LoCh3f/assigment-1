@@ -6,14 +6,16 @@ It is the bridge between view events and model operations.
 
 ## What Is Inside
 - `Controller`: controller API consumed by the view.
-- `ControllerImpl`: concrete coordinator for game startup, input handling, and shutdown.
+- `AbstractController`: shared input handling and game-over watcher.
+- `MultithreadController`: lifecycle orchestration using `GameLoopThread` and `BotThread`.
+- `TaskBasedController`: lifecycle orchestration using `GameLoopTask` and `BotTask`.
 - `concurrent/multithread/*`: thread-based loop and bot workers.
 - `concurrent/taskbased/*`: executor-based loop and bot workers.
 
 ## Organization
 - **Input boundary**: `ViewImpl` calls `Controller` methods (`onDirectionInput`, `onShoot`, `onAim`).
-- **Model command routing**: `ControllerImpl` converts UI actions into model method calls.
-- **Loop orchestration**: controller chooses and starts multithread or task-based mode.
+- **Model command routing**: `AbstractController` converts UI actions into model method calls.
+- **Loop orchestration**: specialized controllers start/stop multithread or task-based mode.
 - **Game-over handling**: controller watches model status and triggers view game-over display.
 
 ## Specific Responsibility in MVC

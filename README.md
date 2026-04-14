@@ -56,10 +56,15 @@ src/main/java/it/unibo/sampleapp/
 ├── Main.java                    # Application entry point
 ├── controller/
 │   ├── Controller.java          # Controller interface
-│   ├── ControllerImpl.java      # Controller implementation
+│   ├── AbstractController.java  # Shared controller logic
+│   ├── MultithreadController.java
+│   ├── TaskBasedController.java
 │   ├── README.md
+│   ├── bot/
+│   │   ├── BotAIConstants.java
+│   │   ├── BotDecisionService.java
+│   │   └── BotMoveService.java
 │   └── concurrent/
-│       ├── BotAIConstants.java
 │       ├── GameLoopConstants.java
 │       ├── multithread/         # Thread-based concurrency
 │       │   ├── BotThread.java   # Bot AI thread
@@ -108,7 +113,7 @@ src/main/java/it/unibo/sampleapp/
 
 Poool is a simplified pool game with the following elements:
 - **Board**: 1920x1080 virtual playing area with walls and holes.
-- **Balls**: configurable small balls (default `1000`), 1 human-controlled ball (blue), 1 bot-controlled ball (red).
+- **Balls**: configurable small balls (default `500`), 1 human-controlled ball (blue), 1 bot-controlled ball (red).
 - **Objective**: Human and bot compete to pocket as many small balls as possible.
 - **Asynchronous Gameplay**: Human and bot act concurrently.
 - **Physics**: Realistic ball movement with friction, elastic collisions, and wall bounces.
@@ -140,6 +145,7 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 - **Model**: `GameModel` is the synchronized monitor for shared game state.
 - **View**: Swing UI that renders immutable `GameSnapshot` instances.
 - **Controller**: Maps user input to model commands and drives view updates.
+- **Controller**: `MultithreadController` and `TaskBasedController` specialize lifecycle orchestration.
 - **Physics**: `PhysicsEngine` handles movement, friction, borders, collisions, and holes.
 - **Concurrency**: game loop and bot are available in both thread-based and task-based modes.
 
@@ -151,7 +157,7 @@ The application follows an **MVC (Model-View-Controller)** pattern with dedicate
 
 ### Task-Based Version
 - `GameLoopTask`: Physics simulation using `ScheduledExecutorService` for periodic execution.
-- `BotTask`: Bot AI using `ExecutorService`, resubmitting itself after each move.
+- `BotTask`: Single bot step scheduled with fixed delay on `ScheduledExecutorService`.
 
 Both versions ensure the `GameModel` monitor is used correctly, with `wait()`/`notifyAll()` for synchronization on game-over conditions.
 
