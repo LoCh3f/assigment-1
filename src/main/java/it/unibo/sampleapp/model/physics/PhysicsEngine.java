@@ -1,11 +1,11 @@
 package it.unibo.sampleapp.model.physics;
 
-import it.unibo.sampleapp.model.ball.Ball;
-import it.unibo.sampleapp.model.hole.Hole;
-import it.unibo.sampleapp.model.physics.concurrent.CollisionBag;
+import it.unibo.sampleapp.model.domain.ball.Ball;
+import it.unibo.sampleapp.model.domain.hole.Hole;
 import it.unibo.sampleapp.model.physics.collision.CollisionResolver;
-import it.unibo.sampleapp.model.physics.collision.ConcurrentCollisionResolver;
-import it.unibo.sampleapp.model.physics.collision.SequentialCollisionResolver;
+import it.unibo.sampleapp.model.physics.collision.multithread.CollisionBag;
+import it.unibo.sampleapp.model.physics.collision.multithread.ConcurrentCollisionResolver;
+import it.unibo.sampleapp.model.physics.collision.sequential.SequentialCollisionResolver;
 import it.unibo.sampleapp.util.Vector2D;
 
 import java.util.ArrayList;
@@ -37,6 +37,15 @@ public final class PhysicsEngine {
     public PhysicsEngine(final CollisionBag bag) {
         final CollisionResolver sequentialResolver = new SequentialCollisionResolver();
         this.collisionResolver = new ConcurrentCollisionResolver(bag, sequentialResolver);
+    }
+
+    /**
+     * Creates a physics engine with a custom collision strategy.
+     *
+     * @param collisionResolver collision strategy to use at each step
+     */
+    public PhysicsEngine(final CollisionResolver collisionResolver) {
+        this.collisionResolver = collisionResolver;
     }
 
     /**
