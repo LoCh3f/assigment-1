@@ -1,34 +1,19 @@
 package it.unibo.sampleapp.model;
 
-import it.unibo.sampleapp.model.ball.Ball;
-import it.unibo.sampleapp.model.ball.impl.ImplBall;
-import it.unibo.sampleapp.model.hole.Hole;
-import it.unibo.sampleapp.model.hole.impl.HoleImpl;
-import it.unibo.sampleapp.model.physics.concurrent.CollisionBag;
-import it.unibo.sampleapp.model.physics.concurrent.CollisionWorker;
-import it.unibo.sampleapp.model.snapshot.BallSnapshot;
+import it.unibo.sampleapp.model.domain.ball.Ball;
 import it.unibo.sampleapp.model.snapshot.GameSnapshot;
+import it.unibo.sampleapp.model.state.BoardState;
 import it.unibo.sampleapp.model.status.GameStatus;
 import it.unibo.sampleapp.model.physics.PhysicsEngine;
+import it.unibo.sampleapp.model.rules.ScoreBoard;
 import it.unibo.sampleapp.util.Vector2D;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static it.unibo.sampleapp.model.constants.GameModelConstants.BOT_BALL_X_RATIO;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.BOT_BALL_Y_RATIO;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.HOLE_RADIUS;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.HUMAN_BALL_X_RATIO;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.HUMAN_BALL_Y_RATIO;
 import static it.unibo.sampleapp.model.constants.GameModelConstants.IMPULSE_STRENGTH;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.MAX_SPAWN_ATTEMPTS_PER_BALL;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.PLAYER_BALL_RADIUS;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.SPAWN_CLEARANCE;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.SMALL_BALL_RADIUS;
-import static it.unibo.sampleapp.model.constants.GameModelConstants.TOP_HALF_RATIO;
 
 /**
- * The game monitor. Single point of truth for all mutable game state.
+ * Base game monitor. Single point of truth for all mutable game state.
  * Every public method is synchronized — this is the custom monitor
  * required by the assignment (no library support).
  *
@@ -39,64 +24,30 @@ import static it.unibo.sampleapp.model.constants.GameModelConstants.TOP_HALF_RAT
  *  - BotThread → calls applyImpulseToBot() on its own schedule
  *  - View → calls getSnapshot() each repaint
  */
-public final class GameModel implements Model {
-    private final List<Ball> balls;
-    private final List<Hole> holes;
-    private final Ball humanBall;
-    private final Ball botBall;
-    private final int boardWidth;
-    private final int boardHeight;
-    private final int totalSmallBalls;
-    private final CollisionBag bag;
-
-    private int humanScore;
-    private int botScore;
+public class GameModel implements Model {
+    private final BoardState boardState;
+    private final ScoreBoard scoreBoard;
     private GameStatus status;
 
     private final PhysicsEngine physicsEngine;
 
     /**
-     * Constructs a new GameModelImpl with the given board dimensions and number of small balls.
+     * Builds the shared model state while delegating collision strategy to subclasses.
      *
-     * @param boardWidth the width of the game board
-     * @param boardHeight the height of the game board
-     * @param numSmallBalls the number of small balls to spawn
+     * @param boardWidth board width
+     * @param boardHeight board height
+     * @param numSmallBalls number of small balls to spawn
+     * @param physicsEngine concrete physics engine to use
      */
-    public GameModel(final int boardWidth, final int boardHeight, final int numSmallBalls) {
-        this.boardWidth = boardWidth;
-        this.boardHeight = boardHeight;
-        this.totalSmallBalls = Math.max(0, numSmallBalls);
-        this.balls = new ArrayList<>();
-        this.holes = buildHoles();
-        this.bag = new CollisionBag();
-        this.physicsEngine = new PhysicsEngine(this.bag);
-        final int nWorkers = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
-        for (int i = 0; i < nWorkers; i++) {
-            new CollisionWorker(i, bag).start();
-        }
-
-        // Place human ball (bottom-left area) and bot ball (bottom-right area)
-        this.humanBall = new ImplBall(
-                new Vector2D(boardWidth * HUMAN_BALL_X_RATIO, boardHeight * HUMAN_BALL_Y_RATIO),
-                new Vector2D(0, 0),
-                PLAYER_BALL_RADIUS,
-                Ball.Type.HUMAN
-        );
-        this.botBall = new ImplBall(
-                new Vector2D(boardWidth * BOT_BALL_X_RATIO, boardHeight * BOT_BALL_Y_RATIO),
-                new Vector2D(0, 0),
-                PLAYER_BALL_RADIUS,
-                Ball.Type.BOT
-        );
-
-        balls.add(humanBall);
-        balls.add(botBall);
-        spawnSmallBalls(totalSmallBalls);
-
-        this.humanScore = 0;
-        this.botScore = 0;
+    protected GameModel(final int boardWidth, final int boardHeight, final int numSmallBalls,
+                        final PhysicsEngine physicsEngine) {
+        final int totalSmallBalls = Math.max(0, numSmallBalls);
+        this.boardState = new BoardState(boardWidth, boardHeight, totalSmallBalls);
+        this.scoreBoard = new ScoreBoard(totalSmallBalls);
+        this.physicsEngine = physicsEngine;
         this.status = GameStatus.PLAYING;
     }
+
 
     /**
      * {@inheritDoc}
@@ -107,7 +58,7 @@ public final class GameModel implements Model {
             return;
         }
 
-        final List<Ball> pocketed = physicsEngine.step(balls, boardWidth, boardHeight, holes, dt);
+        final List<Ball> pocketed = boardState.applyPhysicsStep(physicsEngine, dt);
         handlePocketedBalls(pocketed);
         checkWinCondition();
 
@@ -123,20 +74,19 @@ public final class GameModel implements Model {
             return;
         }
 
-        humanBall.setVelocity(
-                humanBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
-        );
+        boardState.applyImpulseToHuman(direction.normalize().scale(IMPULSE_STRENGTH));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public synchronized void applyImpulseToBot(final Vector2D direction) {
         if (status != GameStatus.PLAYING) {
             return;
         }
 
-        botBall.setVelocity(
-                botBall.getVelocity().add(direction.normalize().scale(IMPULSE_STRENGTH))
-        );
+        boardState.applyImpulseToBot(direction.normalize().scale(IMPULSE_STRENGTH));
     }
 
     /**
@@ -144,12 +94,7 @@ public final class GameModel implements Model {
      */
     @Override
     public synchronized GameSnapshot getSnapshot() {
-        final List<BallSnapshot> snapshots = balls.stream()
-                .map(b -> new BallSnapshot(b.getPosition(), b.getRadius(), b.getType()))
-                .toList();
-        return new GameSnapshot(snapshots,
-                humanScore, botScore,
-                status, List.copyOf(holes), boardWidth, boardHeight);
+        return boardState.toSnapshot(status, scoreBoard.getHumanScore(), scoreBoard.getBotScore());
     }
 
     /**
@@ -183,38 +128,20 @@ public final class GameModel implements Model {
      */
     private void handlePocketedBalls(final List<Ball> pocketed) {
         for (final Ball b : pocketed) {
-            switch (b.getType()) {
-                case HUMAN -> {
-                    // Human player's ball pocketed → Bot wins
-                    status = GameStatus.BOT_WINS;
-                    notifyAll();
-                    return;
-                }
-                case BOT -> {
-                    // Bot player's ball pocketed → Human wins
-                    status = GameStatus.HUMAN_WINS;
-                    notifyAll();
-                    return;
-                }
-                case SMALL -> {
-                    // Get the ball type that last collided with this small ball
-                    final Ball.Type lastCollidedWith = getLastCollisionType(b);
+            final GameStatus immediateWinner = scoreBoard.winnerForPocketedPlayerBall(b.getType());
+            if (immediateWinner != GameStatus.PLAYING) {
+                status = immediateWinner;
+                notifyAll();
+                return;
+            }
 
-                    // Only score if the small ball was directly hit by a player ball
-                    if (lastCollidedWith == Ball.Type.HUMAN) {
-                        humanScore++;
-                        if (humanScore > totalSmallBalls / 2) {
-                            status = GameStatus.HUMAN_WINS;
-                        }
-                    } else if (lastCollidedWith == Ball.Type.BOT) {
-                        botScore++;
-                        if (botScore > totalSmallBalls / 2) {
-                            status = GameStatus.BOT_WINS;
-                        }
-                    }
-                    // If lastCollidedWith is SMALL or null, no score is awarded
-                    notifyAll();
+            if (b.getType() == Ball.Type.SMALL) {
+                scoreBoard.assignPointForSmallBall(getLastCollisionType(b));
+                final GameStatus majorityWinner = scoreBoard.winnerByMajority();
+                if (majorityWinner != GameStatus.PLAYING) {
+                    status = majorityWinner;
                 }
+                notifyAll();
             }
         }
     }
@@ -235,60 +162,9 @@ public final class GameModel implements Model {
      * If so, decides the winner by score.
      */
     private void checkWinCondition() {
-        final boolean noSmallBallsLeft = balls.stream()
-                .noneMatch(b -> b.getType() == Ball.Type.SMALL);
-
-        if (noSmallBallsLeft) {
-            if (humanScore > botScore) {
-                status = GameStatus.HUMAN_WINS;
-            } else if (botScore > humanScore) {
-                status = GameStatus.BOT_WINS;
-            } else {
-                status = GameStatus.DRAW;
-            }
+        if (boardState.hasNoSmallBallsLeft() && status == GameStatus.PLAYING) {
+            status = scoreBoard.winnerWhenBoardIsCleared();
             notifyAll();
         }
-    }
-
-    /**
-     * Two holes at the top corners, as described in the assignment.
-     *
-     * @return list containing the two holes
-     */
-    private List<Hole> buildHoles() {
-        return List.of(
-                new HoleImpl(new Vector2D(HOLE_RADIUS, HOLE_RADIUS), HOLE_RADIUS),
-                new HoleImpl(new Vector2D(boardWidth - HOLE_RADIUS, HOLE_RADIUS), HOLE_RADIUS)
-        );
-    }
-
-    private void spawnSmallBalls(final int count) {
-        for (int i = 0; i < count; i++) {
-            boolean placed = false;
-            for (int attempt = 0; attempt < MAX_SPAWN_ATTEMPTS_PER_BALL && !placed; attempt++) {
-                final double x = SMALL_BALL_RADIUS + Math.random() * (boardWidth - 2 * SMALL_BALL_RADIUS);
-                final double y = SMALL_BALL_RADIUS + Math.random() * boardHeight * TOP_HALF_RATIO;
-                final Vector2D candidate = new Vector2D(x, y);
-                if (isPositionFree(candidate, SMALL_BALL_RADIUS)) {
-                    balls.add(new ImplBall(candidate, new Vector2D(0, 0), SMALL_BALL_RADIUS, Ball.Type.SMALL));
-                    placed = true;
-                }
-            }
-            if (!placed) {
-                final double x = SMALL_BALL_RADIUS + Math.random() * (boardWidth - 2 * SMALL_BALL_RADIUS);
-                final double y = SMALL_BALL_RADIUS + Math.random() * boardHeight * TOP_HALF_RATIO;
-                balls.add(new ImplBall(new Vector2D(x, y), new Vector2D(0, 0), SMALL_BALL_RADIUS, Ball.Type.SMALL));
-            }
-        }
-    }
-
-    private boolean isPositionFree(final Vector2D candidate, final double radius) {
-        for (final Ball existing : balls) {
-            final double minDistance = radius + existing.getRadius() + SPAWN_CLEARANCE;
-            if (existing.getPosition().distance(candidate) < minDistance) {
-                return false;
-            }
-        }
-        return true;
     }
 }
