@@ -73,21 +73,32 @@ src/main/java/it/unibo/sampleapp/
 │   │       ├── Hole.java            # Hole interface
 │   │       └── impl/
 │   │           └── HoleImpl.java    # Hole implementation
-│   ├── physics/
-│   │   ├── PhysicsEngine.java   # Physics simulation orchestrator
-│   │   └── collision/
-│   │       ├── common/
-│   │       │   ├── CollisionPairResolver.java
-│   │       │   ├── CollisionPartitioning.java
-│   │       │   └── CollisionResolverConstants.java
-│   │       ├── multithread/
-│   │       │   ├── CollisionBag.java
-│   │       │   ├── CollisionWorker.java
-│   │       │   └── ConcurrentCollisionResolver.java
-│   │       ├── sequential/
-│   │       │   └── SequentialCollisionResolver.java
-│   │       └── taskbased/
-│   │           └── TaskBasedCollisionResolver.java
+|   │   ├── physics/
+|   │   │   ├── PhysicsEngine.java   # Physics simulation orchestrator
+|   │   │   ├── collision/
+|   │   │   │   ├── common/
+|   │   │   │   │   ├── CollisionPairResolver.java
+|   │   │   │   │   ├── CollisionPartitioning.java
+|   │   │   │   │   └── CollisionResolverConstants.java
+|   │   │   │   ├── multithread/
+|   │   │   │   │   ├── CollisionBag.java
+|   │   │   │   │   ├── CollisionWorker.java
+|   │   │   │   │   └── ConcurrentCollisionResolver.java
+|   │   │   │   ├── sequential/
+|   │   │   │   │   └── SequentialCollisionResolver.java
+|   │   │   │   └── taskbased/
+|   │   │   │       └── TaskBasedCollisionResolver.java
+|   │   │   └── step/
+|   │   │       ├── PhysicsStepResolver.java  # Per-ball step abstraction
+|   │   │       ├── common/
+|   │   │       │   └── PhysicsStepPartitioning.java
+|   │   │       ├── sequential/
+|   │   │       │   └── SequentialPhysicsStepResolver.java
+|   │   │       ├── multithread/
+|   │   │       │   ├── PhysicsStepBag.java
+|   │   │       │   ├── PhysicsStepWorker.java
+|   │   │       │   └── ConcurrentPhysicsStepResolver.java
+|   │   │       └── taskbased/
 │   ├── snapshot/
 │   │   ├── BallSnapshot.java    # Immutable ball snapshot
 │   │   └── GameSnapshot.java    # Immutable game snapshot
