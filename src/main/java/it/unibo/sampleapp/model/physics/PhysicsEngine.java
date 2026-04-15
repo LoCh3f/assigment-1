@@ -6,45 +6,55 @@ import it.unibo.sampleapp.model.physics.collision.CollisionResolver;
 import it.unibo.sampleapp.model.physics.collision.multithread.CollisionBag;
 import it.unibo.sampleapp.model.physics.collision.multithread.ConcurrentCollisionResolver;
 import it.unibo.sampleapp.model.physics.collision.sequential.SequentialCollisionResolver;
-import it.unibo.sampleapp.util.Vector2D;
+import it.unibo.sampleapp.model.physics.step.PhysicsStepResolver;
+import it.unibo.sampleapp.model.physics.step.multithread.ConcurrentPhysicsStepResolver;
+import it.unibo.sampleapp.model.physics.step.multithread.PhysicsStepBag;
+import it.unibo.sampleapp.model.physics.step.sequential.SequentialPhysicsStepResolver;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Stateless physics engine. All methods are pure functions — no fields,
- * no threading. Safe to call from any thread as long as callers
- * synchronize access to the ball list externally (done by GameModel).
+ * Physics engine orchestrator.
+ *
+ * <p>
+ * The engine delegates independent per-ball updates (movement, friction, borders)
+ * to a {@link PhysicsStepResolver} and ball-to-ball interactions to a
+ * {@link CollisionResolver}. Callers must still synchronize access to shared
+ * game state externally (done by GameModel).
  */
 public final class PhysicsEngine {
-    private static final double FRICTION_COEFFICIENT = 0.1;
-    private static final double MIN_SPEED = 0.1;
-
+    private final PhysicsStepResolver stepResolver;
     private final CollisionResolver collisionResolver;
 
     /**
-     * Creates a physics engine with sequential collision resolution.
+     * Creates a physics engine with fully sequential strategies.
      */
     public PhysicsEngine() {
+        this.stepResolver = new SequentialPhysicsStepResolver();
         this.collisionResolver = new SequentialCollisionResolver();
     }
 
     /**
-     * Creates a physics engine with worker-backed collision resolution.
+     * Creates a physics engine with worker-backed step and collision resolution.
      *
-     * @param bag shared monitor used by collision workers
+     * @param collisionBag shared monitor used by collision workers
+     * @param stepBag shared monitor used by step workers
      */
-    public PhysicsEngine(final CollisionBag bag) {
+    public PhysicsEngine(final CollisionBag collisionBag, final PhysicsStepBag stepBag) {
+        final PhysicsStepResolver sequentialStepResolver = new SequentialPhysicsStepResolver();
+        this.stepResolver = new ConcurrentPhysicsStepResolver(stepBag, sequentialStepResolver);
         final CollisionResolver sequentialResolver = new SequentialCollisionResolver();
-        this.collisionResolver = new ConcurrentCollisionResolver(bag, sequentialResolver);
+        this.collisionResolver = new ConcurrentCollisionResolver(collisionBag, sequentialResolver);
     }
 
     /**
-     * Creates a physics engine with a custom collision strategy.
+     * Creates a physics engine with sequential step resolution and a custom collision strategy.
      *
      * @param collisionResolver collision strategy to use at each step
      */
     public PhysicsEngine(final CollisionResolver collisionResolver) {
+        this.stepResolver = new SequentialPhysicsStepResolver();
         this.collisionResolver = collisionResolver;
     }
 
@@ -54,10 +64,8 @@ public final class PhysicsEngine {
      * <p>
      * This method orchestrates the entire physics simulation by:
      * <ol>
-     *   <li>Moving all balls based on their current velocity</li>
-     *   <li>Applying friction to reduce ball velocities</li>
-     *   <li>Handling collisions with board borders</li>
-     *   <li>Handling ball-to-ball elastic collisions</li>
+     *   <li>Applying per-ball step updates via {@link PhysicsStepResolver}</li>
+     *   <li>Resolving ball-to-ball interactions via {@link CollisionResolver}</li>
      *   <li>Detecting which balls have fallen into holes</li>
      * </ol>
      *
@@ -70,100 +78,9 @@ public final class PhysicsEngine {
      */
     public List<Ball> step(final List<Ball> balls, final double boardW, final double boardH,
                            final List<Hole> holes, final double dt) {
-        moveBalls(balls, dt);
-        applyFriction(balls, dt);
-        handleBorderCollisions(balls, boardW, boardH);
+        stepResolver.resolve(balls, boardW, boardH, dt);
         collisionResolver.resolve(balls);
         return checkHoles(balls, holes);
-    }
-
-    /**
-     * Moves all balls based on their velocity and the time delta.
-     *
-     * <p>
-     * Updates each ball's position using: newPosition = currentPosition + velocity * dt
-     * This implements simple Euler integration for ballistics.
-     *
-     * @param balls the list of balls to move
-     * @param dt    the time delta in seconds
-     */
-    private void moveBalls(final List<Ball> balls, final double dt) {
-        for (final Ball b : balls) {
-            b.setPosition(b.getPosition().add(b.getVelocity().scale(dt)));
-        }
-    }
-
-    /**
-     * Applies friction to all balls to reduce their velocity over time.
-     *
-     * <p>
-     * Implements exponential decay: newVelocity = velocity * (1 - FRICTION_COEFFICIENT * dt)
-     * Balls with speed below MIN_SPEED are stopped completely.
-     *
-     * @param balls the list of balls to apply friction to
-     * @param dt    the time delta in seconds
-     */
-    private void applyFriction(final List<Ball> balls, final double dt) {
-        for (final Ball b : balls) {
-            final Vector2D v = b.getVelocity();
-            final double speed = v.magnitude();
-            if (speed < MIN_SPEED) {
-                b.setVelocity(new Vector2D(0, 0));
-            } else {
-                // exponential decay: v' = v * (1 - friction * dt)
-                b.setVelocity(v.scale(Math.max(0, 1.0 - FRICTION_COEFFICIENT * dt)));
-            }
-        }
-    }
-
-    /**
-     * Handles collisions between balls and the board's borders.
-     *
-     * <p>
-     * When a ball hits a wall, its velocity component perpendicular to that wall is reversed
-     * (reflected), while the position is clamped to prevent the ball from leaving the board.
-     * This simulates realistic bouncing off rigid walls.
-     * <ul>
-     *   <li>Left/Right walls: newVx = abs(oldVx) or -abs(oldVx)</li>
-     *   <li>Top/Bottom walls: newVy = abs(oldVy) or -abs(oldVy)</li>
-     * </ul>
-     *
-     * @param balls   the list of balls to check and update
-     * @param boardW  the width of the board
-     * @param boardH  the height of the board
-     */
-    private void handleBorderCollisions(final List<Ball> balls, final double boardW, final double boardH) {
-        for (final Ball b : balls) {
-            final Vector2D pos = b.getPosition();
-            final Vector2D vel = b.getVelocity();
-            final double r = b.getRadius();
-
-            double newVx = vel.x();
-            double newVy = vel.y();
-            double newPx = pos.x();
-            double newPy = pos.y();
-
-            // Left / Right walls
-            if (newPx - r < 0) {
-                newPx = r;
-                newVx = Math.abs(newVx);    // bounce right
-            } else if (newPx + r > boardW) {
-                newPx = boardW - r;
-                newVx = -Math.abs(newVx);   // bounce left
-            }
-
-            // Top / Bottom walls
-            if (newPy - r < 0) {
-                newPy = r;
-                newVy = Math.abs(newVy);    // bounce down
-            } else if (newPy + r > boardH) {
-                newPy = boardH - r;
-                newVy = -Math.abs(newVy);   // bounce up
-            }
-
-            b.setPosition(new Vector2D(newPx, newPy));
-            b.setVelocity(new Vector2D(newVx, newVy));
-        }
     }
 
     /**
