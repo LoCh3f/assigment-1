@@ -41,7 +41,7 @@ public final class TaskBasedCollisionResolver implements CollisionResolver {
     public TaskBasedCollisionResolver() {
         this(
             java.util.concurrent.Executors.newFixedThreadPool(
-                Math.max(2, Runtime.getRuntime().availableProcessors() - 1)
+                Math.max(2, Runtime.getRuntime().availableProcessors() + 1)
             ),
             new SequentialCollisionResolver()
         );
