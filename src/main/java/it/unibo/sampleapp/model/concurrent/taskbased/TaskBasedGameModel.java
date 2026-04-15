@@ -40,7 +40,7 @@ public final class TaskBasedGameModel extends GameModel {
     }
 
     private static ExecutorService createDefaultExecutor() {
-        final int nThreads = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
+        final int nThreads = Math.max(2, Runtime.getRuntime().availableProcessors() + 1);
         return Executors.newFixedThreadPool(nThreads);
     }
 }
