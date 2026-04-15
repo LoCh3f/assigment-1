@@ -1,5 +1,6 @@
 package it.unibo.sampleapp.model;
 
+import it.unibo.sampleapp.model.concurrent.multithread.MultithreadGameModel;
 import it.unibo.sampleapp.util.Vector2D;
 import it.unibo.sampleapp.model.status.GameStatus;
 import org.junit.jupiter.api.Test;

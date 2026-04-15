@@ -1,5 +1,6 @@
-package it.unibo.sampleapp.model;
+package it.unibo.sampleapp.model.concurrent.multithread;
 
+import it.unibo.sampleapp.model.GameModel;
 import it.unibo.sampleapp.model.physics.PhysicsEngine;
 import it.unibo.sampleapp.model.physics.collision.multithread.CollisionBag;
 import it.unibo.sampleapp.model.physics.collision.multithread.CollisionWorker;

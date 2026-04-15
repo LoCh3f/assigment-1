@@ -1,5 +1,6 @@
-package it.unibo.sampleapp.model;
+package it.unibo.sampleapp.model.concurrent.taskbased;
 
+import it.unibo.sampleapp.model.GameModel;
 import it.unibo.sampleapp.model.physics.PhysicsEngine;
 import it.unibo.sampleapp.model.physics.collision.taskbased.TaskBasedCollisionResolver;
 import it.unibo.sampleapp.model.physics.collision.sequential.SequentialCollisionResolver;

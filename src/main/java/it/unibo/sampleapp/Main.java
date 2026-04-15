@@ -4,8 +4,8 @@ import it.unibo.sampleapp.controller.AbstractController;
 import it.unibo.sampleapp.controller.concurrent.multithread.MultithreadController;
 import it.unibo.sampleapp.controller.concurrent.taskbased.TaskBasedController;
 import it.unibo.sampleapp.model.GameModel;
-import it.unibo.sampleapp.model.MultithreadGameModel;
-import it.unibo.sampleapp.model.TaskBasedGameModel;
+import it.unibo.sampleapp.model.concurrent.multithread.MultithreadGameModel;
+import it.unibo.sampleapp.model.concurrent.taskbased.TaskBasedGameModel;
 import it.unibo.sampleapp.view.View;
 import it.unibo.sampleapp.view.ViewImpl;
 
